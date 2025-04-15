@@ -26,7 +26,7 @@
 		<url-pattern>/viiva/*</url-pattern>
 	</filter-mapping>
 	
-	<!-- Auth Filter Configuration -->
+	<!-- Auth Filter Configuration  -->
 	
 	<!-- Servlet Configuration -->
 	<servlet>
