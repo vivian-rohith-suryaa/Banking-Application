@@ -17,7 +17,7 @@ public class ServiceServlet extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		System.out.println("Hi hello");
+		
 		String handlerClassName = (String) request.getAttribute("handler");
 
 		if (Utility.checkNull(handlerClassName) || Utility.checkEmpty(handlerClassName)) {
