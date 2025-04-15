@@ -1,0 +1,136 @@
+routes:
+
+    #Signin
+    - path: /viiva/auth/signin
+      method: POST
+      handler: com.handler.signin.SigninHandler
+
+    #Signup
+    - path: /viiva/auth/signup
+      method: POST
+      handler: com.handler.signup.SignupHandler
+
+    #Logout
+    - path: /viiva/auth/logout
+      method: POST
+      handler: com.handler.session.SessionHandler
+
+    #View User Details  
+    - path: /viiva/user/:id
+      method: GET
+      handler: com.handler.user.UserHandler	  
+
+    #Update User Details
+    - path: /viiva/user/:id
+      method: PUT
+      handler: com.handler.user.UserHandler
+    
+    #Delete User Details
+    - path: /viiva/user/:id
+      method: DELETE
+      handler: com.handler.user.UserHandler
+
+    #View Account Details (All Accounts)
+    - path: /viiva/user/:id/accounts
+      method: GET
+      handler: com.handler.account.AccountHandler
+
+    #View Account Detail (Individual Account)
+    - path: /viiva/account/:id
+      method: GET
+      handler: com.handler.account.AccountHandler
+
+    #View Transactions (All Accounts)
+    - path: /viiva/user/:id/transactions
+      method: GET
+      handler: com.handler.transaction.TransactionHandler
+
+    #View Transactions (Individual Account)
+    - path: /viiva/account/:id/transactions
+      method: GET
+      handler: com.handler.transaction.TransactionHandler
+
+    #Make Payments
+    - path: /viiva/transactions
+      method: POST
+      handler: com.handler.transaction.TransactionHandler
+
+    #View Balance
+    - path: /viiva/account/:id
+      method: GET
+      handler: com.handler.account.AccountHandler
+
+    #Request a New Account
+    - path: /viiva/account
+      method: POST
+      handler: com.handler.account.AccountHandler
+
+    #Delete Existing Account
+    - path: /viiva/account/:id
+      method: DELETE
+      handler: com.handler.account.AccountHandler
+
+    #View Branch Info
+    - path: /viiva/branch
+      method: GET
+      handler: com.handler.branch.BranchHandler
+
+    #View Branch Location
+    - path: /viiva/branch/:id
+      method: GET
+      handler: com.handler.branch.BranchHandler
+
+    #Add Branch Info
+    - path: /viiva/branch
+      method: POST
+      handler: com.handler.branch.BranchHandler
+
+    #Update Branch Info
+    - path: /viiva/branch/:id
+      method: PUT
+      handler: com.handler.branch.BranchHandler
+ 
+    #Delete Branch Info
+    - path: /viiva/branch/:id
+      method: DELETE
+      handler: com.handler.branch.BranchHandler
+
+    #View User Requests
+    - path: /viiva/requests
+      method: GET
+      handler: com.handler.request.RequestHandler
+
+    #Approve User Requests
+    - path: /viiva/requests/:id
+      method: POST
+      handler: com.handler.request.RequestHandler
+
+    #View Employee
+    - path: /viiva/employee
+      method: GET
+      handler: com.handler.user.UserHandler
+
+    #Add Employee
+    - path: /viiva/employee
+      method: POST
+      handler: com.handler.user.UserHandler
+
+    #Update Employee
+    - path: /viiva/employee/:id
+      method: PUT
+      handler: com.handler.user.UserHandler
+
+    #Delete Employee
+    - path: /viiva/employee/:id
+      method: DELETE
+      handler: com.handler.user.UserHandler
+
+    #Send Notification
+    - path: /viiva/notifications
+      method: POST
+      handler: com.handler.notification.NotificationHandler
+
+    #View Notification
+    - path: /viiva/notification/:id
+      method: GET
+      handler: com.handler.notification.NotificationHandler
