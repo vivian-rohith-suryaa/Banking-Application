@@ -1,11 +1,9 @@
 package com.viiva.handler;
 
-import java.io.IOException;
+public interface Handler<T> {
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+	public Object handle(String methodAction, T requestData) throws Exception;
+	
+	public Class<T> getRequestType();
 
-public interface Handler {
-
-	public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException;
 }

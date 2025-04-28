@@ -1,0 +1,110 @@
+auth:
+    protectedResources:
+#Signin
+      - path: /viiva/auth/signin
+        method: POST
+        roles: [USER, ADMIN, SUPERADMIN]
+#Signup
+      - path: /viiva/auth/signup
+        method: POST
+        roles: []
+#Logout
+      - path: /viiva/auth/logout
+        method: POST
+        roles: [USER, ADMIN, SUPERADMIN]
+#View User Details
+      - path: /viiva/user/:id
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#Update User Details
+      - path: /viiva/user/:id
+        method: PUT
+        roles: [USER, ADMIN, SUPERADMIN]
+#Delete User Details
+      - path: /viiva/user/:id
+        method: DELETE
+        roles: [SUPERADMIN]
+#View Account Details (All Accounts)
+      - path: /viiva/user/:id/accounts
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#View Account Detail (Individual Account)
+      - path: /viiva/account/:id
+        method: GET
+        role: [USER, ADMIN, SUPERADMIN]
+#View Transactions (All Accounts)
+      - path: /viiva/user/:id/transactions
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#View Transactions (Individual Account)
+      - path: /viiva/account/id/transactions
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#Make Payments
+      - path: /viiva/transactions
+        method: POST
+        roles: [USER, ADMIN, SUPERADMIN]
+#View Balance
+      - path: /viiva/account/:id
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#Request a New Account
+      - path: /viiva/account
+        method: POST
+        roles: [USER, ADMIN, SUPERADMIN]
+#Delete Existing Account
+      - path: /viiva/account/:id
+        method: DELETE
+        roles: [SUPERADMIN]
+#View Branch Info
+      - path: /viiva/branch
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#View Branch Location
+      - path: /viiva/branch/:id
+        method: GET
+        roles: [USER, ADMIN, SUPERADMIN]
+#Add Branch Info
+      - path: /viiva/branch
+        method: POST
+        roles: [SUPERADMIN]
+#Update Branch Info
+      - path: /viiva/branch/:id
+        method: PUT
+        roles: [SUPERADMIN]
+#Delete Branch Info
+      - path: /viiva/branch/:id
+        method: DELETE
+        roles: [SUPERADMIN]
+#View User Requests
+      - path: /viiva/requests
+        method: GET
+        roles: [ADMIN, SUPERADMIN]
+#Approve User Requests
+      - path: /viiva/requests/id
+        method: POST
+        roles: [ADMIN, SUPERADMIN]
+#View Employee
+      - path: /viiva/employee
+        method: GET
+        roles: [ADMIN, SUPERADMIN]
+#Add Employee
+      - path: /viiva/employee
+        method: POST
+        roles: [SUPERADMIN]
+#Update Employee
+      - path: /viiva/employee/:id
+        method: PUT
+        roles: [ADMIN, SUPERADMIN]
+#Delete Employee:
+      - path: /viiva/employee/:id
+        method: DELETE
+        roles: [SUPERADMIN]
+#Send Notification
+      - path: /viiva/notifications
+        method: POST
+        roles: [ADMIN, SUPERADMIN]
+#View Notification
+      - path: /viiva/notification/:id
+        method:	GET
+        roles: [USER, ADMIN, SUPERADMIN]
