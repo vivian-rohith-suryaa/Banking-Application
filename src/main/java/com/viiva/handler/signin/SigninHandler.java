@@ -1,18 +1,83 @@
 package com.viiva.handler.signin;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import java.util.HashMap;
+import java.util.Map;
+import com.viiva.dao.user.UserDAO;
+import com.viiva.exceptions.AuthException;
+import com.viiva.exceptions.DBException;
 import com.viiva.handler.Handler;
+import com.viiva.util.BasicUtil;
+import com.viiva.util.DBUtil;
+import com.viiva.util.InputValidator;
+import com.viiva.wrapper.signin.SigninRequest;
 
-public class SigninHandler implements Handler {
+public class SigninHandler implements Handler<SigninRequest> {
 
 	@Override
-	public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		// TODO Auto-generated method stub
+	public Object handle(String methodAction, SigninRequest requestData) throws Exception {
 
+		switch (methodAction) {
+
+		case "POST":
+
+			try {
+				String validationResult = InputValidator.validateSignin(requestData);
+
+				if (!validationResult.isEmpty()) {
+					throw new AuthException("Invalid Input(s) found: " + validationResult);
+				}
+
+				DBUtil.start();
+				UserDAO userDao = new UserDAO();
+
+				String email = requestData.getEmail();
+
+				String hashedPassword = userDao.authUser(email);
+
+				if (!BasicUtil.isNull(hashedPassword)) {
+					if (BasicUtil.checkPassword(requestData.getPassword(), hashedPassword)) {
+
+						Map<String, Object> result = userDao.getSessionDetail(email);
+
+						if (!BasicUtil.isNull(result)) {
+
+							DBUtil.commit();
+
+							Map<String, Object> responseData = new HashMap<>();
+
+							responseData.put("message", "Signin Successful");
+							responseData.put("userId", result.get("userId"));
+							responseData.put("userType", result.get("userType"));
+
+							return responseData;
+						} else {
+							DBUtil.rollback();
+							throw new DBException("Failed to fetch session details.");
+						}
+					} else {
+						DBUtil.rollback();
+						throw new AuthException("Passwords do not match.");
+					}
+				} else {
+					DBUtil.rollback();
+					throw new AuthException("Signing in failed. No valid user found for this email: " + email);
+				}
+
+			} catch (Exception e) {
+				throw (Exception) e;
+			}
+
+		default:
+			throw new Exception("Invalid Method Action: " + methodAction);
+
+		}
+
+	}
+
+	@Override
+	public Class<SigninRequest> getRequestType() {
+
+		return null;
 	}
 
 }

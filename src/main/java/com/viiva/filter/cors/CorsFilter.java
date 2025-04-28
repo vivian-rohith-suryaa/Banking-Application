@@ -2,7 +2,6 @@ package com.viiva.filter.cors;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -11,9 +10,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import com.viiva.filter.loader.CorsConfigLoader;
-import com.viiva.util.Utility;
+import com.viiva.util.BasicUtil;
 
 public class CorsFilter implements Filter {
 
@@ -22,6 +20,7 @@ public class CorsFilter implements Filter {
 	@Override
 	public void init(FilterConfig filterConfig) {
 		this.corsConfig = CorsConfigLoader.getCorsConfig();
+		System.out.println("Cors Filter Initialised.");
 	}
 
 	@Override
@@ -31,7 +30,7 @@ public class CorsFilter implements Filter {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-		if (Utility.checkNull(corsConfig) || Utility.checkEmpty(corsConfig)) {
+		if (BasicUtil.isBlank(corsConfig)) {
 			chain.doFilter(httpRequest, httpResponse);
 			return;
 		}
@@ -49,6 +48,7 @@ public class CorsFilter implements Filter {
 			}
 			applyCorsHeaders(httpResponse, origin);
 		}
+		System.out.println("CORS Filter cleared.");
 		chain.doFilter(httpRequest, httpResponse);
 	}
 
