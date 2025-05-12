@@ -4,17 +4,17 @@ public enum UserType {
 
 	CUSTOMER(0), EMPLOYEE(1), MANAGER(2), SUPERADMIN(3);
 
-	private final int code;
+	private final byte code;
 
 	UserType(int code) {
-		this.code = code;
+		this.code = (byte) code;
 	}
 
-	public int getCode() {
+	public byte getCode() {
 		return code;
 	}
 
-	public static UserType fromCode(int code) {
+	public static UserType fromCode(byte code) {
 		for (UserType t : values()) {
 			if (t.code == code) {
 				return t;

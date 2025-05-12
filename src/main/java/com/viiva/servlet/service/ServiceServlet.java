@@ -1,5 +1,6 @@
 package com.viiva.servlet.service;
 
+import com.fasterxml.jackson.databind.introspect.TypeResolutionContext.Basic;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.HandlerNotFoundException;
 import com.viiva.exceptions.InputException;
@@ -16,6 +16,8 @@ import com.viiva.handler.Handler;
 import com.viiva.handler.registry.HandlerRegistry;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.ResponseUtil;
+import com.viiva.util.ServletUtil;
+import com.viiva.wrapper.user.UserWrapper;
 
 public class ServiceServlet extends HttpServlet {
 
@@ -31,35 +33,44 @@ public class ServiceServlet extends HttpServlet {
 			return;
 		}
 
-		System.out.println("Incoming request to server.");
+		System.out.println("\nIncoming request to server.");
 		String handlerClassName = (String) request.getAttribute("handler");
 		String methodAction = request.getMethod();
 
+		System.out.println(request.getRequestURI());
+
+		System.out.println("Handler: " + handlerClassName + "\nMethod: " + methodAction);
+
 		if (BasicUtil.isBlank(handlerClassName)) {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND,
-					"No handler mapped for this route. (Null/Empty handler)");
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "No handler found. (Null/Empty handler)");
 			return;
 		}
 
 		try (BufferedReader reader = request.getReader()) {
 			Handler handler = HandlerRegistry.getHandler(handlerClassName);
 			Class<?> requestClass = handler.getRequestType();
-
 			Object requestData = gson.fromJson(reader, requestClass);
-
-			Object result = handler.handle(methodAction, requestData);
 			
+			System.out.println("Deserialized request:"+gson.toJson(requestData));
+			
+			if(BasicUtil.isNull(requestData)) {
+				requestData = requestClass.getDeclaredConstructor().newInstance();
+			}
+
+			Map<String, Object> pathParams = ServletUtil.extractPathParams(request);
+
+			if (requestData instanceof UserWrapper) {
+				((UserWrapper) requestData).setPathParams(pathParams);
+			}
+			Object result = handler.handle(methodAction, requestData);
+
 			Map<String, Object> resultData = (Map<String, Object>) result;
 
 			response.setContentType("application/json");
 			response.setCharacterEncoding("UTF-8");
-			
+
 			ResponseUtil.sendSuccess(response, result);
-			
-			HttpSession session = request.getSession();
-			
-			session.setAttribute("userId", resultData.get("userId"));
-			session.setAttribute("userType", resultData.get("userType"));
+
 
 		} catch (HandlerNotFoundException e) {
 			ResponseUtil.sendError(response, 404, "Not Found", e.getMessage());

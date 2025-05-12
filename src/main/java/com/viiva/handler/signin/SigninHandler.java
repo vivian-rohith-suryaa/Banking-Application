@@ -5,6 +5,7 @@ import java.util.Map;
 import com.viiva.dao.user.UserDAO;
 import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.DBException;
+import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
@@ -21,48 +22,52 @@ public class SigninHandler implements Handler<SigninRequest> {
 		case "POST":
 
 			try {
-				String validationResult = InputValidator.validateSignin(requestData);
+				if (!BasicUtil.isNull(requestData)) {
+					String validationResult = InputValidator.validateSignin(requestData).toString();
 
-				if (!validationResult.isEmpty()) {
-					throw new AuthException("Invalid Input(s) found: " + validationResult);
-				}
+					if (!validationResult.isEmpty()) {
+						throw new AuthException("Invalid Input(s) found: " + validationResult);
+					}
 
-				DBUtil.start();
-				UserDAO userDao = new UserDAO();
+					UserDAO userDao = new UserDAO();
 
-				String email = requestData.getEmail();
+					String email = requestData.getEmail();
 
-				String hashedPassword = userDao.authUser(email);
+					Map<String, Object> result = userDao.authenticate(email);
+					System.out.println(result);
+					String hashedPassword = (String) result.get("password");
 
-				if (!BasicUtil.isNull(hashedPassword)) {
-					if (BasicUtil.checkPassword(requestData.getPassword(), hashedPassword)) {
+					if (!BasicUtil.isNull(hashedPassword)) {
+						if (BasicUtil.checkPassword(requestData.getPassword(), hashedPassword)) {
 
-						Map<String, Object> result = userDao.getSessionDetail(email);
+							result.remove("password");
 
-						if (!BasicUtil.isNull(result)) {
+							if (!BasicUtil.isNull(result)) {
 
-							DBUtil.commit();
+								DBUtil.commit();
 
-							Map<String, Object> responseData = new HashMap<>();
+								Map<String, Object> responseData = new HashMap<>();
 
-							responseData.put("message", "Signin Successful");
-							responseData.put("userId", result.get("userId"));
-							responseData.put("userType", result.get("userType"));
+								responseData.put("message", "Signin Successful");
+								responseData.put("userId", result.get("userId"));
+								responseData.put("userType", result.get("userType"));
 
-							return responseData;
+								return responseData;
+							} else {
+								DBUtil.rollback();
+								throw new DBException("Failed to fetch session details.");
+							}
 						} else {
 							DBUtil.rollback();
-							throw new DBException("Failed to fetch session details.");
+							throw new AuthException("Passwords do not match.");
 						}
 					} else {
 						DBUtil.rollback();
-						throw new AuthException("Passwords do not match.");
+						throw new AuthException("Signing in failed. No valid user found for this email: " + email);
 					}
 				} else {
-					DBUtil.rollback();
-					throw new AuthException("Signing in failed. No valid user found for this email: " + email);
+					throw new InputException("Null Input.");
 				}
-
 			} catch (Exception e) {
 				throw (Exception) e;
 			}
@@ -77,7 +82,7 @@ public class SigninHandler implements Handler<SigninRequest> {
 	@Override
 	public Class<SigninRequest> getRequestType() {
 
-		return null;
+		return SigninRequest.class;
 	}
 
 }

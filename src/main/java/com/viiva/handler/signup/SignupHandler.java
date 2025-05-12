@@ -12,73 +12,75 @@ import com.viiva.pojo.user.User;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
 import com.viiva.util.InputValidator;
-import com.viiva.wrapper.signup.SignupRequest;
+import com.viiva.wrapper.user.UserWrapper;
 
-public class SignupHandler implements Handler<SignupRequest> {
+public class SignupHandler implements Handler<UserWrapper> {
 
-	public Object handle(String methodAction, SignupRequest data) throws Exception {
+	public Object handle(String methodAction, UserWrapper data) throws Exception {
 
 		switch (methodAction) {
 		case "POST":
-
 			try {
-				String validationResult = InputValidator.validateUser(data);
+				if (!BasicUtil.isNull(data)) {
+					StringBuilder validationResult = InputValidator.validateUser(data);
+					
+					if(!InputValidator.isStrongPassword(data.getUser().getPassword())) {
+						validationResult.append("Password: " + data.getUser().getPassword()+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).").append(" || ");
+					}
 
-				if (!validationResult.isEmpty()) {
-					throw new InputException("Invalid Input(s) found: " + validationResult);
-				}
+					if (!validationResult.toString().isEmpty()) {
+						throw new InputException("Invalid Input(s) found: " + validationResult);
+					}
 
-				User user = data.getUser();
-				user.setPassword(BasicUtil.encrypt(user.getPassword()));
+					User user = data.getUser();
+					user.setPassword(BasicUtil.encrypt(user.getPassword()));
 
-				DBUtil.start();
-				UserDAO userDao = new UserDAO();
-				Map<String, Object> userResult = userDao.signupUser(user);
+					UserDAO userDao = new UserDAO();
+					Map<String, Object> userResult = userDao.signupUser(user);
 
-				if (!BasicUtil.isNull(userResult)) {
+					if (BasicUtil.isNull(userResult)) {
+						throw new DBException("User Registration Failed.");
+					}
+
 					long userId = (long) userResult.get("userId");
-					byte userType = (byte) userResult.get("userType");
+					Byte userType = (Byte) userResult.get("userType");
 
 					Customer customer = data.getCustomer();
 					customer.setCustomerId(userId);
 
 					CustomerDAO customerDao = new CustomerDAO();
 
-					if (customerDao.signupCustomer(customer)) {
-
-						DBUtil.commit();
-
-						System.out.println("New user signedup\n" + "User Id: " + userId + "\nEmail:" + user.getEmail());
-
-						Map<String, Object> responseData = new HashMap<>();
-						responseData.put("message", "Signup Successful");
-						responseData.put("userId", userId);
-						responseData.put("userType", userType);
-
-						return responseData;
-					} else {
-						DBUtil.rollback();
+					if (!customerDao.signupCustomer(customer)) {
 						throw new DBException("Customer Registration Failed.");
 					}
 
-				} else {
-					DBUtil.rollback();
-					throw new DBException("User Registration Failed.");
+					DBUtil.commit();
 
+					System.out.println("New user signedup\n" + "User Id: " + userId + "\nEmail:" + user.getEmail());
+
+					Map<String, Object> responseData = new HashMap<>();
+					responseData.put("message", "Signup Successful");
+					responseData.put("userId", userId);
+					responseData.put("userType", userType);
+
+					return responseData;
+				} else {
+					throw new InputException("Null Input.");
 				}
 			} catch (Exception e) {
+				DBUtil.rollback();
 				throw (Exception) e;
 			}
-			
+
 		default:
-			throw new Exception("Invalid Method Action: "+methodAction);
+			throw new Exception("Invalid Method Action: " + methodAction);
 		}
 
 	}
 
 	@Override
-	public Class<SignupRequest> getRequestType() {
-		return SignupRequest.class;
+	public Class<UserWrapper> getRequestType() {
+		return UserWrapper.class;
 	}
 
 }
