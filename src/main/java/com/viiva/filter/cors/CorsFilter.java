@@ -35,10 +35,22 @@ public class CorsFilter implements Filter {
 			return;
 		}
 
+		System.out.println("\nRequest URI: " + httpRequest.getRequestURI());
+		System.out.println("Request method: " + httpRequest.getMethod());
+		System.out.println("Content-Type: " + httpRequest.getContentType());
+		System.out.println("Headers: " + httpRequest.getHeader("Content-Type"));
+
 		String origin = httpRequest.getHeader("Origin");
+
+		if (BasicUtil.isNull(origin)) {
+			origin = "*";
+		}
+
+		System.out.println("Origin: " + origin);
+
 		List<String> allowedOrigins = corsConfig.getAllowedOrigins();
 
-		boolean originAllowed = origin != null && (allowedOrigins.contains("*") || allowedOrigins.contains(origin));
+		boolean originAllowed = (allowedOrigins.contains("*") || allowedOrigins.contains(origin));
 
 		if (originAllowed) {
 			if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
@@ -47,9 +59,15 @@ public class CorsFilter implements Filter {
 				return;
 			}
 			applyCorsHeaders(httpResponse, origin);
+
+			System.out.println("CORS Filter cleared.\n");
+
+			chain.doFilter(httpRequest, httpResponse);
+
+		} else {
+			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Cors filter rejection.");
 		}
-		System.out.println("CORS Filter cleared.");
-		chain.doFilter(httpRequest, httpResponse);
+
 	}
 
 	public void applyCorsHeaders(HttpServletResponse httpResponse, String origin) {

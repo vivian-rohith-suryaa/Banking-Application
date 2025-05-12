@@ -2,7 +2,7 @@ package com.viiva.util;
 
 import com.viiva.pojo.user.Gender;
 import com.viiva.wrapper.signin.SigninRequest;
-import com.viiva.wrapper.signup.SignupRequest;
+import com.viiva.wrapper.user.UserWrapper;
 
 public class InputValidator {
 
@@ -31,56 +31,52 @@ public class InputValidator {
 		return !(BasicUtil.isBlank(pan) && pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]{1}$"));
 	}
 
-	public static String validateUser(SignupRequest data) {
+	public static StringBuilder validateUser(UserWrapper data) {
 		StringBuilder validationResult = new StringBuilder("");
 		String name = data.getUser().getName();
 		String email = data.getUser().getEmail();
 		String phone = data.getUser().getPhone();
-		String password = data.getUser().getPassword();
 		Gender gender = data.getUser().getGender();
 		String aadhar = data.getCustomer().getAadhar();
 		String pan = data.getCustomer().getPan();
-
+		
 		if (!isValidName(name)) {
-			validationResult.append("\nInvalid Name: " + name);
+			validationResult.append("Invalid Name: " + name).append(" || ");
 		}
 		if (!isValidEmail(email)) {
-			validationResult.append("\nInvalid Email Format: " + email);
+			validationResult.append("Invalid Email Format: " + email).append(" || ");
 		}
 		if (!isValidPhone(phone)) {
-			validationResult.append("\nInvalid Phone Number: " + phone);
-		}
-		if (!isStrongPassword(password)) {
-			validationResult.append("\nPassword: " + password
-					+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
+			validationResult.append("Invalid Phone Number: " + phone).append(" || ");
 		}
 		if (BasicUtil.isBlank(gender)) {
-			validationResult.append("\nNull/Empty Gender: " + gender);
+			validationResult.append("Invalid Gender: " + gender).append(" || ");
 		}
 		if (!isValidAadhar(aadhar)) {
-			validationResult.append("\nInvalid Aadhar Number:" + aadhar);
+			validationResult.append("Invalid Aadhar Number:" + aadhar).append(" || ");
 		}
 		if (!isValidPan(pan)) {
-			validationResult.append("\nInvalid PAN Number: " + pan);
+			validationResult.append("Invalid PAN Number: " + pan).append(" || ");
 		}
 
-		return validationResult.toString();
+		return validationResult;
 	}
 	
-	public static String validateSignin(SigninRequest data) {
+	public static StringBuilder validateSignin(SigninRequest data) {
 		StringBuilder validationResult = new StringBuilder("");
 		String email = data.getEmail();
 		String password = data.getPassword();
 		
 		if (!isValidEmail(email)) {
-			validationResult.append("\nInvalid Email: " + email);
+			validationResult.append("Invalid Email: " + email).append(" || ");
 		}
 		if (!isStrongPassword(password)) {
-			validationResult.append("\nInvalid Password: " + password);
+			validationResult.append("Invalid Password: " + password).append(" || ");
 		}
 		
-		return validationResult.toString();
+		return validationResult;
 		
 	}
+	
 
 }
