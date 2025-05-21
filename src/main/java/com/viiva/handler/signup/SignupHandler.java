@@ -25,7 +25,7 @@ public class SignupHandler implements Handler<UserWrapper> {
 					StringBuilder validationResult = InputValidator.validateUser(data);
 					
 					if(!InputValidator.isStrongPassword(data.getUser().getPassword())) {
-						validationResult.append("Password: " + data.getUser().getPassword()+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).").append(" || ");
+						validationResult.append("Password: " + data.getUser().getPassword()+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
 					}
 
 					if (!validationResult.toString().isEmpty()) {

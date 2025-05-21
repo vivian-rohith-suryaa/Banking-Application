@@ -73,7 +73,6 @@ public class UserDAO {
 
 			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
 				if (rs.next()) {
-					System.out.println("came here");
 					Map<String, Object> result = new HashMap<String, Object>();
 
 					result.put("userId", rs.getString("user_id"));
@@ -121,7 +120,7 @@ public class UserDAO {
 
 	public User updateUser(User user) {
 
-		String query = "UPDATE user SET name=?,email=?,phone=?,gender=?,status=?,modified_time=?,modified_by=? WHERE user_id=?";
+		String query = "UPDATE user SET name=?,email=?,phone=?,gender=?,modified_time=?,modified_by=? WHERE user_id=?";
 		
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			long now = System.currentTimeMillis();
@@ -129,19 +128,16 @@ public class UserDAO {
 			pstmt.setString(2, user.getEmail());
 			pstmt.setString(3, user.getPhone());
 			pstmt.setString(4, user.getGender().name());
-			pstmt.setByte(5, (byte)user.getStatus().getCode());
-			pstmt.setLong(6, now);
+			pstmt.setLong(5, now);
+			pstmt.setLong(6, user.getUserId());
 			pstmt.setLong(7, user.getUserId());
-			pstmt.setLong(8, user.getUserId());
 
 			int rows = DBUtil.executeUpdate(pstmt);
 			if (rows > 0) {
 				user.setModifiedBy(user.getUserId());
-				user.setModifiedTime(now);
-				System.out.println("Finished in the User DAO");
+				user.setModifiedTime(user.getModifiedTime());
 				return user;
 			}
-			System.out.println("NULL in the User DAO");
 			return null;
 
 		} catch (SQLIntegrityConstraintViolationException e) {
@@ -157,6 +153,47 @@ public class UserDAO {
 			}
 
 		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while updating the user details.", e);
+		}
+	}
+	
+	public Map<String,Object> getEmployeeById(long employee_id) {
+		String query = "SELECT user_id,type FROM user WHERE user_id = ?";
+
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+			pstmt.setLong(1, employee_id);
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				while (rs.next()) {
+					Map<String, Object> employeeMap = new HashMap<String, Object>();
+					employeeMap.put("userId", rs.getLong("user_id"));
+					employeeMap.put("type", UserType.fromCode(rs.getByte("type")));
+					return employeeMap;
+				}
+				return null;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while fetching the user by id.", e);
+		}
+
+	}
+	
+	public boolean updateToEmployee(long employee_id) {
+		String query = "UPDATE user SET type=?,modified_time=?,modified_by=? WHERE user_id=?";
+		
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+			pstmt.setByte(1, (byte)UserType.EMPLOYEE.getCode());
+			pstmt.setLong(2, System.currentTimeMillis());
+			pstmt.setLong(3, 0);
+			pstmt.setLong(4, employee_id);
+	
+			int rows = DBUtil.executeUpdate(pstmt);
+			return rows>0;
+			
+		}  catch (SQLException e) {
 			e.printStackTrace();
 			throw new DBException("Error occurred while updating the user details.", e);
 		}

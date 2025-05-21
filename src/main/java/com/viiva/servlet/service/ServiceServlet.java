@@ -1,6 +1,5 @@
 package com.viiva.servlet.service;
 
-import com.fasterxml.jackson.databind.introspect.TypeResolutionContext.Basic;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +13,8 @@ import com.viiva.exceptions.HandlerNotFoundException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
 import com.viiva.handler.registry.HandlerRegistry;
+import com.viiva.pojo.branch.Branch;
+import com.viiva.pojo.employee.Employee;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.ResponseUtil;
 import com.viiva.util.ServletUtil;
@@ -60,8 +61,13 @@ public class ServiceServlet extends HttpServlet {
 			Map<String, Object> pathParams = ServletUtil.extractPathParams(request);
 
 			if (requestData instanceof UserWrapper) {
-				((UserWrapper) requestData).setPathParams(pathParams);
+			    ((UserWrapper) requestData).setPathParams(pathParams);
+			} else if (requestData instanceof Branch) {
+			    ((Branch) requestData).setPathParams(pathParams);
+			} else if (requestData instanceof Employee) {
+				((Employee) requestData).setPathParams(pathParams);
 			}
+
 			Object result = handler.handle(methodAction, requestData);
 
 			Map<String, Object> resultData = (Map<String, Object>) result;

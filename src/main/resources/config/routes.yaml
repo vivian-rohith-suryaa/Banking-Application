@@ -106,24 +106,24 @@ routes:
       handler: com.viiva.handler.request.RequestHandler
 
     #View Employee
-    - path: /viiva/employee
+    - path: /viiva/employee/:id
       method: GET
-      handler: com.viiva.handler.user.UserHandler
+      handler: com.viiva.handler.employee.EmployeeHandler
 
     #Add Employee
     - path: /viiva/employee
       method: POST
-      handler: com.viiva.handler.user.UserHandler
+      handler: com.viiva.handler.employee.EmployeeHandler
 
     #Update Employee
     - path: /viiva/employee/:id
       method: PUT
-      handler: com.viiva.handler.user.UserHandler
+      handler: com.viiva.handler.employee.EmployeeHandler
 
     #Delete Employee
     - path: /viiva/employee/:id
       method: DELETE
-      handler: com.viiva.handler.user.UserHandler
+      handler: com.viiva.handler.employee.EmployeeHandler
 
     #Send Notification
     - path: /viiva/notifications

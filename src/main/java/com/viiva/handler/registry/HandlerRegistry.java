@@ -19,6 +19,7 @@ public class HandlerRegistry {
 		registerHandler("com.viiva.handler.signup.SignupHandler", com.viiva.handler.signup.SignupHandler.class);
 		registerHandler("com.viiva.handler.transaction.TransactionHandler", com.viiva.handler.transaction.TransactionHandler.class);
 		registerHandler("com.viiva.handler.user.UserHandler", com.viiva.handler.user.UserHandler.class);
+		registerHandler("com.viiva.handler.employee.EmployeeHandler",com.viiva.handler.employee.EmployeeHandler.class);
 	}
 
 	private static void registerHandler(String name, Class<? extends Handler> handlerClass) {
