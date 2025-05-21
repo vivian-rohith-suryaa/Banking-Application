@@ -1,5 +1,6 @@
 package com.viiva.util;
 
+import com.viiva.pojo.branch.Branch;
 import com.viiva.pojo.user.Gender;
 import com.viiva.wrapper.signin.SigninRequest;
 import com.viiva.wrapper.user.UserWrapper;
@@ -30,6 +31,10 @@ public class InputValidator {
 	public static boolean isValidPan(String pan) {
 		return !(BasicUtil.isBlank(pan) && pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]{1}$"));
 	}
+	
+	public static boolean isValidAddress(String address) {
+		return !(BasicUtil.isBlank(address) && address.matches("^[a-zA-Z0-9\\s,.\\-/#()]{5,100}$"));
+	}
 
 	public static StringBuilder validateUser(UserWrapper data) {
 		StringBuilder validationResult = new StringBuilder("");
@@ -39,6 +44,7 @@ public class InputValidator {
 		Gender gender = data.getUser().getGender();
 		String aadhar = data.getCustomer().getAadhar();
 		String pan = data.getCustomer().getPan();
+		String address = data.getCustomer().getAddress();
 		
 		if (!isValidName(name)) {
 			validationResult.append("Invalid Name: " + name).append(" || ");
@@ -58,6 +64,10 @@ public class InputValidator {
 		if (!isValidPan(pan)) {
 			validationResult.append("Invalid PAN Number: " + pan).append(" || ");
 		}
+		
+		if(!isValidAddress(address)) {
+			validationResult.append("Invalid Address: "+address).append("||");
+		}
 
 		return validationResult;
 	}
@@ -72,6 +82,34 @@ public class InputValidator {
 		}
 		if (!isStrongPassword(password)) {
 			validationResult.append("Invalid Password: " + password).append(" || ");
+		}
+		
+		return validationResult;
+		
+	}
+	
+	public static StringBuilder validateAddress(Branch data) {
+		StringBuilder validationResult = new StringBuilder("");
+		
+		StringBuilder address = new StringBuilder();
+		String locality = data.getLocality();
+		String district = data.getDistrict();
+		String state = data.getState();
+		
+		if (locality != null && !locality.isEmpty()) {
+			address.append(locality);
+		}
+		if (district != null && !district.isEmpty()) {
+		    if (address.length() > 0) address.append(", ");
+		    address.append(district);
+		}
+		if (state != null && !state.isEmpty()) {
+		    if (address.length() > 0) address.append(", ");
+		    address.append(state);
+		}
+		
+		if(!isValidAddress(address.toString())){
+			validationResult.append("Invalid Address: "+address);
 		}
 		
 		return validationResult;

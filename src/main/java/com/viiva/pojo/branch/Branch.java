@@ -1,5 +1,7 @@
 package com.viiva.pojo.branch;
 
+import java.util.Map;
+
 public class Branch {
 
 	private Long branchId;
@@ -82,6 +84,13 @@ public class Branch {
 
 	public void setModifiedBy(Long modifiedBy) {
 		this.modifiedBy = modifiedBy;
+	}
+	
+	public void setPathParams(Map<String, Object> params) {
+	    if (params.containsKey("branch")) {
+	        String branchId = params.get("branch").toString();
+	        this.setBranchId(Long.parseLong(branchId));
+	    }
 	}
 
 }
