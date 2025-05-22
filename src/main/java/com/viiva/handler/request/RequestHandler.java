@@ -1,19 +1,18 @@
 package com.viiva.handler.request;
 
 import com.viiva.handler.Handler;
+import com.viiva.wrapper.account.AccountRequest;
 
-public class RequestHandler implements Handler {
+public class RequestHandler implements Handler<AccountRequest> {
 
 	@Override
-	public Object handle(String methodAction, Object requestData) throws Exception {
-		// TODO Auto-generated method stub
+	public Object handle(String methodAction, AccountRequest requestData) throws Exception {
 		return null;
 	}
 
 	@Override
-	public Class getRequestType() {
-		// TODO Auto-generated method stub
-		return null;
+	public Class<AccountRequest> getRequestType() {
+		return AccountRequest.class;
 	}
 
 

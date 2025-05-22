@@ -5,8 +5,7 @@ public class Account {
 	private Long accountId;
 	private Long customerId;
 	private Long branchId;
-	private String upiId;
-	private String type;
+	private AccountType accountType;
 	private Double balance;
 	private String status = "active";
 	private String pin;
@@ -36,22 +35,6 @@ public class Account {
 
 	public void setBranchId(Long branchId) {
 		this.branchId = branchId;
-	}
-
-	public String getUpiId() {
-		return upiId;
-	}
-
-	public void setUpiId(String upiId) {
-		this.upiId = upiId;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
 	}
 
 	public Double getBalance() {
@@ -100,6 +83,14 @@ public class Account {
 
 	public void setModifiedBy(Long modifiedBy) {
 		this.modifiedBy = modifiedBy;
+	}
+
+	public AccountType getAccountType() {
+		return accountType;
+	}
+
+	public void setAccountType(AccountType accountType) {
+		this.accountType = accountType;
 	}
 
 }
