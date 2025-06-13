@@ -25,4 +25,10 @@ public class BasicUtil {
 		return BCrypt.checkpw(password, storedHash);
 	}
 	
+	public static boolean pathMatches(String configPath, String requestPath) {
+		String path = requestPath.replaceFirst("^/viiva_banc", "");
+		String regex = configPath.replaceAll(":\\w+", "[^/]+") + "$";
+		return path.matches(regex);
+	}
+	
 }

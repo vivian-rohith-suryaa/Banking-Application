@@ -1,11 +1,10 @@
 routes:
-
-    #Signin
+    #Signin 
     - path: /viiva/auth/signin
       method: POST
       handler: com.viiva.handler.signin.SigninHandler
 
-    #Signup
+    #Signup done
     - path: /viiva/auth/signup
       method: POST
       handler: com.viiva.handler.signup.SignupHandler
@@ -40,6 +39,11 @@ routes:
       method: GET
       handler: com.viiva.handler.account.AccountHandler
 
+    #Update Account Detail
+    - path: /viiva/account/:id
+      method: PUT
+      handler: com.viiva.handler.account.AccountHandler
+
     #View Transactions (All Accounts)
     - path: /viiva/user/:id/transactions
       method: GET
@@ -55,11 +59,6 @@ routes:
       method: POST
       handler: com.viiva.handler.transaction.TransactionHandler
 
-    #View Balance
-    - path: /viiva/account/:id
-      method: GET
-      handler: com.viiva.handler.account.AccountHandler
-
     #Request a New Account
     - path: /viiva/account
       method: POST
@@ -71,11 +70,6 @@ routes:
       handler: com.viiva.handler.account.AccountHandler
 
     #View Branch Info
-    - path: /viiva/branch
-      method: GET
-      handler: com.viiva.handler.branch.BranchHandler
-
-    #View Branch Location
     - path: /viiva/branch/:id
       method: GET
       handler: com.viiva.handler.branch.BranchHandler
@@ -96,13 +90,13 @@ routes:
       handler: com.viiva.handler.branch.BranchHandler
 
     #View User Requests
-    - path: /viiva/requests
+    - path: /viiva/request/:id
       method: GET
       handler: com.viiva.handler.request.RequestHandler
 
     #Approve User Requests
-    - path: /viiva/requests/:id
-      method: POST
+    - path: /viiva/request/:id
+      method: PUT
       handler: com.viiva.handler.request.RequestHandler
 
     #View Employee
@@ -124,13 +118,3 @@ routes:
     - path: /viiva/employee/:id
       method: DELETE
       handler: com.viiva.handler.employee.EmployeeHandler
-
-    #Send Notification
-    - path: /viiva/notifications
-      method: POST
-      handler: com.viiva.handler.notification.NotificationHandler
-
-    #View Notification
-    - path: /viiva/notification/:id
-      method: GET
-      handler: com.viiva.handler.notification.NotificationHandler

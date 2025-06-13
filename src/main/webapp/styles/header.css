@@ -1,0 +1,72 @@
+@charset "UTF-8";
+
+header{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	box-sizing: border-box;
+	height: 6.5vh;
+	background: #fff;
+	border: none;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+/* Header Container */
+.header-container {
+    display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin:0px 20px 0px 20px;
+	height: 70px;
+}
+
+/* Left Section */
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    width: 60px;
+    height: auto;
+    padding: 0px 10px;
+    margin-top: 2px;
+    transition: transform 0.3s ease;
+}
+.logo-img:hover {
+    transform: scale(1.05);
+}
+
+.name-img{
+	width: 200px;
+    height: auto;
+    margin-right: 15px;
+    transition: transform 0.3s ease;
+}
+
+.name-img:hover {
+    transform: scale(1.05);
+}
+
+/* Right Section */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.profile-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+.profile-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Anchor Tags Reset */
+a {
+    text-decoration: none;
+    color: inherit;
+}

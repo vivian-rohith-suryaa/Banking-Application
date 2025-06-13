@@ -15,6 +15,7 @@
 		<url-pattern>/viiva/*</url-pattern>
 	</filter-mapping>
 
+	<!-- Route Filter Configuration -->	
 	<filter>
 		<filter-name>RouteFilter</filter-name>
 		<filter-class>com.viiva.filter.route.RouteFilter</filter-class>
@@ -26,7 +27,16 @@
 	</filter-mapping>
 
 	<!-- Auth Filter Configuration -->
+	<filter>
+		<filter-name>AuthFilter</filter-name>
+		<filter-class>com.viiva.filter.auth.AuthFilter</filter-class>
+	</filter>
 
+	<filter-mapping>
+		<filter-name>AuthFilter</filter-name>
+		<url-pattern>/viiva/*</url-pattern>
+	</filter-mapping>
+	
 	<!-- Servlet Configuration -->
 	<servlet>
 		<servlet-name>ServiceServlet</servlet-name>

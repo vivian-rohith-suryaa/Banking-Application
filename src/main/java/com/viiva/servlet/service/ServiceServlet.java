@@ -15,9 +15,12 @@ import com.viiva.handler.Handler;
 import com.viiva.handler.registry.HandlerRegistry;
 import com.viiva.pojo.branch.Branch;
 import com.viiva.pojo.employee.Employee;
+import com.viiva.pojo.request.Request;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.ResponseUtil;
 import com.viiva.util.ServletUtil;
+import com.viiva.wrapper.account.AccountRequest;
+import com.viiva.wrapper.account.AccountTransaction;
 import com.viiva.wrapper.user.UserWrapper;
 
 public class ServiceServlet extends HttpServlet {
@@ -52,22 +55,29 @@ public class ServiceServlet extends HttpServlet {
 			Class<?> requestClass = handler.getRequestType();
 			Object requestData = gson.fromJson(reader, requestClass);
 			
-			System.out.println("Deserialized request:"+gson.toJson(requestData));
-			
-			if(BasicUtil.isNull(requestData)) {
+			System.out.println("Deserialized request:" + gson.toJson(requestData));
+
+			if (BasicUtil.isNull(requestData)) {
 				requestData = requestClass.getDeclaredConstructor().newInstance();
 			}
 
 			Map<String, Object> pathParams = ServletUtil.extractPathParams(request);
-
+			
 			if (requestData instanceof UserWrapper) {
-			    ((UserWrapper) requestData).setPathParams(pathParams);
+				((UserWrapper) requestData).setPathParams(pathParams);
 			} else if (requestData instanceof Branch) {
-			    ((Branch) requestData).setPathParams(pathParams);
+				((Branch) requestData).setPathParams(pathParams);
 			} else if (requestData instanceof Employee) {
 				((Employee) requestData).setPathParams(pathParams);
+			} else if (requestData instanceof Request) {
+				((Request) requestData).setPathParams(pathParams);
+			} else if (requestData instanceof AccountRequest) {
+				((AccountRequest) requestData).setPathParams(pathParams);
+			} else if (requestData instanceof AccountTransaction) {
+				System.out.println("Came here");
+				((AccountTransaction) requestData).setPathParams(pathParams);
 			}
-
+					
 			Object result = handler.handle(methodAction, requestData);
 
 			Map<String, Object> resultData = (Map<String, Object>) result;
@@ -76,7 +86,6 @@ public class ServiceServlet extends HttpServlet {
 			response.setCharacterEncoding("UTF-8");
 
 			ResponseUtil.sendSuccess(response, result);
-
 
 		} catch (HandlerNotFoundException e) {
 			ResponseUtil.sendError(response, 404, "Not Found", e.getMessage());
