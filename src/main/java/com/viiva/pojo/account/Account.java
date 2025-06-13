@@ -7,7 +7,7 @@ public class Account {
 	private Long branchId;
 	private AccountType accountType;
 	private Double balance;
-	private String status = "active";
+	private AccountStatus status;
 	private String pin;
 	private Long createdTime;
 	private Long modifiedTime;
@@ -43,14 +43,6 @@ public class Account {
 
 	public void setBalance(Double balance) {
 		this.balance = balance;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
 	}
 
 	public String getPin() {
@@ -92,5 +84,14 @@ public class Account {
 	public void setAccountType(AccountType accountType) {
 		this.accountType = accountType;
 	}
+
+	public AccountStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(AccountStatus status) {
+		this.status = status;
+	}
+	
 
 }

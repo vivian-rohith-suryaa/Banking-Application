@@ -3,13 +3,14 @@ package com.viiva.pojo.transaction;
 public class Transaction {
 
 	private Long transactionId;
+	private long transactionReference;
 	private Long customerId;
 	private Long accountId;
 	private Long transactedAccount;
-	private String transactionType;
-	private String paymentMode;
+	private TransactionType transactionType;
+	private PaymentMode paymentMode;
 	private Double amount;
-	private Long closingBalance;
+	private Double closingBalance;
 	private Long transactionTime;
 
 	public Long getTransactionId() {
@@ -44,19 +45,19 @@ public class Transaction {
 		this.transactedAccount = transactedAccount;
 	}
 
-	public String getTransactionType() {
+	public TransactionType getTransactionType() {
 		return transactionType;
 	}
 
-	public void setTransactionType(String transactionType) {
+	public void setTransactionType(TransactionType transactionType) {
 		this.transactionType = transactionType;
 	}
 
-	public String getPaymentMode() {
+	public PaymentMode getPaymentMode() {
 		return paymentMode;
 	}
 
-	public void setPaymentMode(String paymentMode) {
+	public void setPaymentMode(PaymentMode paymentMode) {
 		this.paymentMode = paymentMode;
 	}
 
@@ -68,11 +69,11 @@ public class Transaction {
 		this.amount = amount;
 	}
 
-	public Long getClosingBalance() {
+	public Double getClosingBalance() {
 		return closingBalance;
 	}
 
-	public void setClosingBalance(Long closingBalance) {
+	public void setClosingBalance(Double closingBalance) {
 		this.closingBalance = closingBalance;
 	}
 
@@ -82,6 +83,14 @@ public class Transaction {
 
 	public void setTransactionTime(Long transactionTime) {
 		this.transactionTime = transactionTime;
+	}
+
+	public long getTransactionReference() {
+		return transactionReference;
+	}
+
+	public void setTransactionReference(long transactionReference) {
+		this.transactionReference = transactionReference;
 	}
 
 }

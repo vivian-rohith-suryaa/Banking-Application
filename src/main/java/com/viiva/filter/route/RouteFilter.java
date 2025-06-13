@@ -1,6 +1,5 @@
 package com.viiva.filter.route;
 
-import java.awt.image.ReplicateScaleFilter;
 import java.io.IOException;
 import java.util.Optional;
 import javax.servlet.Filter;
@@ -31,7 +30,6 @@ public class RouteFilter implements Filter {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 
 		if (BasicUtil.isBlank(routeRegistry)) {
-			// System.out.println("Null here");
 			chain.doFilter(httpRequest, response);
 			return;
 		}
@@ -44,30 +42,23 @@ public class RouteFilter implements Filter {
 		String path = httpRequest.getRequestURI();
 		String method = httpRequest.getMethod();
 
-		Optional<RouteConfig> matchedRoute = routeRegistry.getRoutes().stream()
-				.filter(route -> pathMatches(route.getPath(), path) && route.getMethod().equalsIgnoreCase(method))
+		Optional<RouteConfig> matchedRoute = routeRegistry.getRoutes().stream().filter(
+				route -> BasicUtil.pathMatches(route.getPath(), path) && route.getMethod().equalsIgnoreCase(method))
 				.findFirst();
 
-		if (matchedRoute.isPresent()) {
-			System.out.println("API Route: " + matchedRoute.get().getPath() + "\nMethod: "
-					+ matchedRoute.get().getMethod() + "\nHandler: " + matchedRoute.get().getHandler());
-
-			request.setAttribute("handler", matchedRoute.get().getHandler());
-
-			System.out.println("Route Filter Cleared.\n");
-			chain.doFilter(httpRequest, response);
-		} else {
+		if (!matchedRoute.isPresent()) {
 			System.out.println("Filter Request: " + httpRequest);
 			System.out.println("Filter Response: " + response);
 			((HttpServletResponse) response).sendError(HttpServletResponse.SC_NOT_FOUND,
 					"No handler found for this route.\n" + response);
+			return;
 		}
-	}
+		System.out.println("API Route: " + matchedRoute.get().getPath() + "\nMethod: " + matchedRoute.get().getMethod()
+				+ "\nHandler: " + matchedRoute.get().getHandler());
 
-	private boolean pathMatches(String configPath, String requestPath) {
-		String path = requestPath.replaceFirst("^/viiva_banc", "");
-		String regex = configPath.replaceAll(":\\w+", "[^/]+") + "$";
-		return path.matches(regex);
-	}
+		request.setAttribute("handler", matchedRoute.get().getHandler());
 
+		System.out.println("Route Filter Cleared.\n");
+		chain.doFilter(httpRequest, response);
+	}
 }

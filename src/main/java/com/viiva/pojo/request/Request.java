@@ -1,5 +1,6 @@
 package com.viiva.pojo.request;
 
+import java.util.Map;
 import com.viiva.pojo.account.AccountType;
 
 public class Request {
@@ -9,7 +10,7 @@ public class Request {
 	private Long branchId;
 	private AccountType accountType;
 	private Double balance;
-	private String status;
+	private RequestStatus status;
 	private String remarks;
 	private Long createdTime;
 	private Long modifiedBy;
@@ -45,14 +46,6 @@ public class Request {
 
 	public void setBalance(Double balance) {
 		this.balance = balance;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
 	}
 
 	public String getRemarks() {
@@ -93,6 +86,21 @@ public class Request {
 
 	public void setBranchId(Long branchId) {
 		this.branchId = branchId;
+	}
+
+	public RequestStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(RequestStatus status) {
+		this.status = status;
+	}
+	
+	public void setPathParams(Map<String, Object> params) {
+	    if (params.containsKey("request")) {
+	        String requestId = params.get("request").toString();
+	        this.setRequestId(Long.parseLong(requestId));
+	    }
 	}
 
 }
