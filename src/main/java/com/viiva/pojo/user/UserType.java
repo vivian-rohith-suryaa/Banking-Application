@@ -2,7 +2,7 @@ package com.viiva.pojo.user;
 
 public enum UserType {
 
-	CUSTOMER(0), EMPLOYEE(1), MANAGER(2), SUPERADMIN(3);
+	CUSTOMER(1), EMPLOYEE(2), MANAGER(3), SUPERADMIN(4), ANONYMOUS(0);
 
 	private final byte code;
 

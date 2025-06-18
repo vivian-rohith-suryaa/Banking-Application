@@ -14,9 +14,6 @@
 			</a>
 		</div>
 		<div class="header-right">
-			<a href="profile.jsp" title="View Profile"> <img
-				src="images/profile_icon.svg" alt="Profile" class="profile-icon">
-			</a>
 		</div>
 	</div>
 </header>

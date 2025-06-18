@@ -13,7 +13,6 @@ body {
 	color: #333;
 }
 
-/* Container Layout */
 .whole-container {
 	display: flex;
 	justify-content: flex-start;
@@ -28,7 +27,7 @@ body {
 	border-radius: 12px;
 	height: 86vh;
 }
-/* Auth Container */
+
 .auth-container {
 	width: 500px;
 	background: white;
@@ -74,14 +73,12 @@ body {
 	display: flex;
 }
 
-/* Headings */
 .form h2 {
 	text-align: center;
 	margin-bottom: 10px;
 	color: #003366;
 }
 
-/* Input Styling */
 .input-box {
 	position: relative;
 	margin-bottom: 15px;
@@ -121,7 +118,21 @@ body {
 	flex: 1;
 }
 
-/* Button Styling */
+.password-wrapper {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #555;
+  user-select: none;
+}
+
 .submit-btn {
 	background: #003366;
 	color: white;
@@ -138,7 +149,35 @@ body {
 	background: #002244;
 }
 
-/* Responsive */
+.toast {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 24px;
+  background-color: #003366;
+  color: #fff;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+
+.toast.error {
+  background-color: #cc0000;
+}
+
+
 @media ( max-width : 768px) {
 	.whole-container {
 		flex-direction: column;

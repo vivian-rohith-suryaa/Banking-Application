@@ -17,7 +17,7 @@ public class BranchDAO {
 
 	public Map<String, Object> addBranch(Branch branch) {
 
-		String query = "INSERT INTO branch (manager_id, ifsc_code, locality, district, state, created_time) VALUES(?,?,?,?,?,?)";
+		String query = "INSERT INTO branch (manager_id, ifsc_code, locality, district, state, created_time, modified_by) VALUES(?,?,?,?,?,?,?)";
 
 		try (PreparedStatement pstmt = DBUtil.prepareWithKeys(DBUtil.getConnection(), query)) {
 
@@ -27,6 +27,7 @@ public class BranchDAO {
 			pstmt.setString(4, branch.getDistrict());
 			pstmt.setString(5, branch.getState());
 			pstmt.setLong(6, System.currentTimeMillis());
+			pstmt.setLong(7, branch.getModifiedBy());
 
 			int rows = DBUtil.executeUpdate(pstmt);
 			if (rows > 0) {
@@ -74,7 +75,7 @@ public class BranchDAO {
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			long now = System.currentTimeMillis();
 
-			pstmt.setLong(1, branch.getManagerId());
+			pstmt.setObject(1, branch.getManagerId());
 			pstmt.setString(2, branch.getLocality());
 			pstmt.setString(3, branch.getDistrict());
 			pstmt.setString(4, branch.getState());

@@ -3,7 +3,9 @@ package com.viiva.dao.employee;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.viiva.exceptions.DBException;
 import com.viiva.pojo.employee.Employee;
@@ -37,7 +39,7 @@ public class EmployeeDAO {
 
 	public Employee getEmployeeById(long empId) {
 
-		String query = "SELECT e.employee_id,u.name,u.email,u.phone,u.type,e.branch_id,u.modified_time,u.modified_by FROM employee e JOIN user u on e.employee_id = u.user_id WHERE employee_id =?";
+		String query = "SELECT e.employee_id,u.name,u.email,u.phone,u.type,e.branch_id,u.modified_time,u.modified_by FROM employee e JOIN user u on e.employee_id = u.user_id WHERE e.employee_id =?";
 
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 
@@ -88,6 +90,33 @@ public class EmployeeDAO {
 			e.printStackTrace();
 			throw new DBException("Error occurred while updating employee", e);
 		}
+	}
+
+	public List<Employee> getBranchEmployees(long branchId) {
+		String query = "SELECT e.employee_id,u.name,u.email,u.phone,u.type,e.branch_id FROM employee e JOIN user u on e.employee_id = u.user_id WHERE e.branch_id =?";
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+
+			pstmt.setLong(1, branchId);
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				List<Employee> employeeList = new ArrayList<>();
+	            while (rs.next()) {
+	                Employee emp = new Employee();
+	                emp.setEmployeeId(rs.getLong("employee_id"));
+	                emp.setName(rs.getString("name"));
+	                emp.setEmail(rs.getString("email"));
+	                emp.setPhone(rs.getString("phone"));
+	                emp.setType(UserType.fromCode(rs.getByte("type")));
+	                emp.setBranchId(rs.getLong("branch_id"));
+	                employeeList.add(emp);
+	            }
+	            return employeeList;
+				
+			}
+		}  catch (SQLException e) {
+	        e.printStackTrace();
+	        throw new DBException("Error while fetching employees by branch.", e);
+	    }
 	}
 
 }

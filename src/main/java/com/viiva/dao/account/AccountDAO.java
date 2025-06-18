@@ -128,7 +128,7 @@ public class AccountDAO {
 
 	        pstmt.setDouble(1, account.getBalance());
 	        pstmt.setLong(2, System.currentTimeMillis());
-	        pstmt.setLong(3, account.getAccountId());
+	        pstmt.setLong(3, account.getModifiedBy());
 	        pstmt.setLong(4, account.getAccountId());
 
 	        int rows = DBUtil.executeUpdate(pstmt);

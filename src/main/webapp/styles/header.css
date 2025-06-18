@@ -11,7 +11,7 @@ header{
 	border: none;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
 }
-/* Header Container */
+
 .header-container {
     display: flex;
 	justify-content: space-between;
@@ -20,7 +20,6 @@ header{
 	height: 70px;
 }
 
-/* Left Section */
 .header-left {
     display: flex;
     align-items: center;
@@ -48,7 +47,6 @@ header{
     transform: scale(1.05);
 }
 
-/* Right Section */
 .header-right {
     display: flex;
     align-items: center;
@@ -65,7 +63,6 @@ header{
     transform: scale(1.1);
 }
 
-/* Anchor Tags Reset */
 a {
     text-decoration: none;
     color: inherit;

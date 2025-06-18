@@ -2,8 +2,9 @@ package com.viiva.pojo.request;
 
 import java.util.Map;
 import com.viiva.pojo.account.AccountType;
+import com.viiva.session.SessionAware;
 
-public class Request {
+public class Request implements SessionAware{
 
 	private Long requestId;
 	private Long customerId;
@@ -15,6 +16,17 @@ public class Request {
 	private Long createdTime;
 	private Long modifiedBy;
 	private Long modifiedTime;
+	private Map<String, Object> sessionAttributes;
+
+	@Override
+	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
+		this.sessionAttributes = sessionAttributes;
+	}
+	
+	@Override
+	public Map<String, Object> getSessionAttributes() {
+	    return this.sessionAttributes;
+	}
 
 	public Long getRequestId() {
 		return requestId;

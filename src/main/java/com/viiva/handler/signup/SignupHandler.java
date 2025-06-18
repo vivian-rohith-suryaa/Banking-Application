@@ -21,52 +21,53 @@ public class SignupHandler implements Handler<UserWrapper> {
 		switch (methodAction) {
 		case "POST":
 			try {
-				if (!BasicUtil.isNull(data)) {
-					StringBuilder validationResult = InputValidator.validateUser(data);
-					
-					if(!InputValidator.isStrongPassword(data.getUser().getPassword())) {
-						validationResult.append("Password: " + data.getUser().getPassword()+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
-					}
-
-					if (!validationResult.toString().isEmpty()) {
-						throw new InputException("Invalid Input(s) found: " + validationResult);
-					}
-
-					User user = data.getUser();
-					user.setPassword(BasicUtil.encrypt(user.getPassword()));
-
-					UserDAO userDao = new UserDAO();
-					Map<String, Object> userResult = userDao.signupUser(user);
-
-					if (BasicUtil.isNull(userResult)) {
-						throw new DBException("User Registration Failed.");
-					}
-
-					long userId = (long) userResult.get("userId");
-					Byte userType = (Byte) userResult.get("userType");
-
-					Customer customer = data.getCustomer();
-					customer.setCustomerId(userId);
-
-					CustomerDAO customerDao = new CustomerDAO();
-
-					if (!customerDao.signupCustomer(customer)) {
-						throw new DBException("Customer Registration Failed.");
-					}
-
-					DBUtil.commit();
-
-					System.out.println("New user signedup\n" + "User Id: " + userId + "\nEmail:" + user.getEmail());
-
-					Map<String, Object> responseData = new HashMap<>();
-					responseData.put("message", "Signup Successful");
-					responseData.put("userId", userId);
-					responseData.put("userType", userType);
-
-					return responseData;
-				} else {
-					throw new InputException("Null Input.");
+				if (BasicUtil.isNull(data) || BasicUtil.isNull(data.getUser()) || BasicUtil.isNull(data.getCustomer())) {
+					throw new InputException("Invalid (Null) Input.");
 				}
+				StringBuilder validationResult = InputValidator.validateUser(data);
+
+				if (!InputValidator.isStrongPassword(data.getUser().getPassword())) {
+					validationResult.append("Password: " + data.getUser().getPassword()
+							+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
+				}
+
+				if (!validationResult.toString().isEmpty()) {
+					throw new InputException("Invalid Input(s) found: " + validationResult);
+				}
+
+				User user = data.getUser();
+				user.setPassword(BasicUtil.encrypt(user.getPassword()));
+
+				UserDAO userDao = new UserDAO();
+				Map<String, Object> userResult = userDao.signupUser(user);
+
+				if (BasicUtil.isNull(userResult)) {
+					throw new DBException("User Registration Failed.");
+				}
+
+				long userId = (long) userResult.get("userId");
+				Byte userType = (Byte) userResult.get("userType");
+
+				Customer customer = data.getCustomer();
+				customer.setCustomerId(userId);
+
+				CustomerDAO customerDao = new CustomerDAO();
+
+				if (!customerDao.signupCustomer(customer)) {
+					throw new DBException("User Registration Failed.");
+				}
+
+				DBUtil.commit();
+
+				System.out.println("New user signedup\n" + "User Id: " + userId);
+
+				Map<String, Object> responseData = new HashMap<>();
+				responseData.put("message", "Signup Successful");
+				responseData.put("userId", userId);
+				responseData.put("role", userType);
+
+				return responseData;
+
 			} catch (Exception e) {
 				DBUtil.rollback();
 				throw (Exception) e;

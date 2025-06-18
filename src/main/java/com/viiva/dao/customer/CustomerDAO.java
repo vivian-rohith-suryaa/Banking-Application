@@ -35,6 +35,7 @@ public class CustomerDAO {
 				throw new DBException("Constraint Violation occurred Database.");
 			}
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new DBException("Error while signing up the user.", e);
 		}
 	}

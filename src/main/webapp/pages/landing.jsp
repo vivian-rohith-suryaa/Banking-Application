@@ -13,7 +13,7 @@
 
 	<div class="whole-container">
 		<div class="image-container">
-			<img src="<%= request.getContextPath() %>/images/signup.png"
+			<img src="<%=request.getContextPath()%>/images/signup.png"
 				alt="Landing Image">
 		</div>
 		<div class="auth-container">
@@ -22,32 +22,42 @@
 				<button class="tab-btn" id="signupTab">Signup</button>
 			</div>
 			<div class="form-wrapper">
-				<form action="login" method="post" class="form login-form active">
+				<form id="loginForm" action="login" method="post"
+					class="form login-form active json-form" data-form-type="login"
+					data-endpoint="<%=request.getContextPath()%>/viiva/auth/signin"
+					data-allow-submit="true">
 					<h2>Login</h2>
 					<div class="input-box">
 						<input type="text" name="email" required placeholder=" ">
 						<label>Email</label>
 					</div>
 					<div class="input-box">
-						<input type="password" name="password" required placeholder=" ">
+						<div class="password-wrapper">
+							<input type="password" name="password" required placeholder=" ">
+							<span class="toggle-password" title="Toggle Password">&#128065;</span>
+						</div>
 						<label>Password</label>
 					</div>
-					<button type="button" class="submit-btn">Login</button>
+
+					<button type="submit" class="submit-btn">Login</button>
 				</form>
 
-				<form action="signup" method="post" class="form signup-form">
+				<form id="signupForm" action="signup" method="post"
+					class="form signup-form json-form" data-form-type="signup"
+					data-endpoint="<%=request.getContextPath()%>/viiva/auth/signup"
+					data-allow-submit="true">
 					<h2>Signup</h2>
 					<div class="form-row">
 						<div class="input-box">
-							<input type="text" name="fullname" required placeholder=" ">
-							<label>Full Name</label>
+							<input type="text" name="name" required placeholder=" ">
+							<label>Name</label>
 						</div>
 						<div class="input-box">
 							<select name="gender" required>
 								<option value="" disabled selected hidden></option>
-								<option value="Male">Male</option>
-								<option value="Female">Female</option>
-								<option value="Other">Other</option>
+								<option value="MALE">Male</option>
+								<option value="FEMALE">Female</option>
+								<option value="OTHER">Other</option>
 							</select> <label>Gender</label>
 						</div>
 					</div>
@@ -83,41 +93,54 @@
 					</div>
 					<div class="form-row">
 						<div class="input-box">
-							<input type="password" name="password" required placeholder=" ">
+							<div class="password-wrapper">
+								<input type="password" name="password" required placeholder=" ">
+								<span class="toggle-password" title="Show Password">&#128065;</span>
+							</div>
 							<label>Password</label>
 						</div>
 						<div class="input-box">
-							<input type="password" name="confirmPassword" required
-								placeholder=" "> <label>Confirm Password</label>
+							<div class="password-wrapper">
+								<input type="password" name="confirmPassword" required
+									placeholder=" "> <span class="toggle-password"
+									title="Toggle Password">&#128065;</span>
+							</div>
+							<label>Confirm Password</label>
+
 						</div>
 					</div>
-					<button type="button" class="submit-btn">Signup</button>
+					<button type="submit" class="submit-btn">Signup</button>
 				</form>
 			</div>
 		</div>
+		<div id="toast" class="toast"></div>
 	</div>
 
 	<script>
-    const loginTab = document.getElementById('loginTab');
-    const signupTab = document.getElementById('signupTab');
-    const loginForm = document.querySelector('.login-form');
-    const signupForm = document.querySelector('.signup-form');
+	    const loginTab = document.getElementById('loginTab');
+	    const signupTab = document.getElementById('signupTab');
+	    const loginForm = document.querySelector('.login-form');
+	    const signupForm = document.querySelector('.signup-form');
+	
+	    loginTab.addEventListener('click', () => {
+	      loginTab.classList.add('active');
+	      signupTab.classList.remove('active');
+	      loginForm.classList.add('active');
+	      signupForm.classList.remove('active');
+	    });
+	
+	    signupTab.addEventListener('click', () => {
+	      signupTab.classList.add('active');
+	      loginTab.classList.remove('active');
+	      signupForm.classList.add('active');
+	      loginForm.classList.remove('active');
+	    });
+	  </script>
 
-    loginTab.addEventListener('click', () => {
-      loginTab.classList.add('active');
-      signupTab.classList.remove('active');
-      loginForm.classList.add('active');
-      signupForm.classList.remove('active');
-    });
-
-    signupTab.addEventListener('click', () => {
-      signupTab.classList.add('active');
-      loginTab.classList.remove('active');
-      signupForm.classList.add('active');
-      loginForm.classList.remove('active');
-    });
-  </script>
+	<script src="<%=request.getContextPath()%>/functions/jsonconverter.js"
+		defer></script>
 
 	<jsp:include page="/pages/footer.jsp" />
+
 </body>
 </html>

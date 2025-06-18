@@ -1,13 +1,24 @@
 package com.viiva.pojo.employee;
 
 import java.util.Map;
-
 import com.viiva.pojo.user.User;
+import com.viiva.session.SessionAware;
 
-public class Employee extends User{
+public class Employee extends User implements SessionAware{
 
 	private Long employeeId;
 	private Long branchId;
+	private Map<String, Object> sessionAttributes;
+
+	@Override
+	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
+		this.sessionAttributes = sessionAttributes;
+	}
+	
+	@Override
+	public Map<String, Object> getSessionAttributes() {
+	    return this.sessionAttributes;
+	}
 	
 	public Long getEmployeeId() {
 		return employeeId;

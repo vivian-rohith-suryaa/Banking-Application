@@ -8,7 +8,7 @@ import com.viiva.wrapper.user.UserWrapper;
 public class InputValidator {
 
 	public static boolean isValidName(String name) {
-		return !(BasicUtil.isBlank(name) && name.matches("^([A-Za-z]{1,})( [A-Za-z]{1,})*$"));
+		 return !(BasicUtil.isBlank(name)) && name.matches("^([A-Za-z]{1,})( [A-Za-z]{1,})*$");
 	}
 
 	public static boolean isValidEmail(String email) {
@@ -29,11 +29,11 @@ public class InputValidator {
 	}
 
 	public static boolean isValidPan(String pan) {
-		return !(BasicUtil.isBlank(pan) && pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]{1}$"));
+		return !(BasicUtil.isBlank(pan)) && pan.matches("^[A-Z]{5}[0-9]{4}[A-Z]{1}$");
 	}
 	
 	public static boolean isValidAddress(String address) {
-		return !(BasicUtil.isBlank(address) && address.matches("^[a-zA-Z0-9\\s,.\\-/#()]{5,100}$"));
+		return !(BasicUtil.isBlank(address)) && address.matches("^[a-zA-Z0-9\\s,.\\-/#()]{5,100}$");
 	}
 
 	public static StringBuilder validateUser(UserWrapper data) {
@@ -47,26 +47,26 @@ public class InputValidator {
 		String address = data.getCustomer().getAddress();
 		
 		if (!isValidName(name)) {
-			validationResult.append("Invalid Name: " + name).append(" || ");
+			validationResult.append("Invalid Name. ").append(" || ");
 		}
 		if (!isValidEmail(email)) {
-			validationResult.append("Invalid Email Format: " + email).append(" || ");
+			validationResult.append("Invalid Email Format. ").append(" || ");
 		}
 		if (!isValidPhone(phone)) {
-			validationResult.append("Invalid Phone Number: " + phone).append(" || ");
+			validationResult.append("Invalid Phone Number. ").append(" || ");
 		}
 		if (BasicUtil.isBlank(gender)) {
-			validationResult.append("Invalid Gender: " + gender).append(" || ");
+			validationResult.append("Invalid Gender. ").append(" || ");
 		}
 		if (!isValidAadhar(aadhar)) {
-			validationResult.append("Invalid Aadhar Number:" + aadhar).append(" || ");
+			validationResult.append("Invalid Aadhar Number. ").append(" || ");
 		}
 		if (!isValidPan(pan)) {
-			validationResult.append("Invalid PAN Number: " + pan).append(" || ");
+			validationResult.append("Invalid PAN Number. ").append(" || ");
 		}
 		
 		if(!isValidAddress(address)) {
-			validationResult.append("Invalid Address: "+address).append("||");
+			validationResult.append("Invalid Address. ").append("||");
 		}
 
 		return validationResult;
@@ -78,10 +78,10 @@ public class InputValidator {
 		String password = data.getPassword();
 		
 		if (!isValidEmail(email)) {
-			validationResult.append("Invalid Email: " + email).append(" || ");
+			validationResult.append("Invalid Email. ").append(" || ");
 		}
 		if (!isStrongPassword(password)) {
-			validationResult.append("Invalid Password: " + password).append(" || ");
+			validationResult.append("Invalid Password. ").append(" || ");
 		}
 		
 		return validationResult;
@@ -109,7 +109,7 @@ public class InputValidator {
 		}
 		
 		if(!isValidAddress(address.toString())){
-			validationResult.append("Invalid Address: "+address);
+			validationResult.append("Invalid Address. ");
 		}
 		
 		return validationResult;

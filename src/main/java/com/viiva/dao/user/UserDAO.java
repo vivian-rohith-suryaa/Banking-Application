@@ -17,7 +17,7 @@ public class UserDAO {
 
 	public Map<String, Object> signupUser(User user) {
 
-		String query = "INSERT INTO user (name, email, phone, gender, password, type, status, created_time, modified_time, modified_by) VALUES (?,?,?,?,?,?,?,?,?,?)";
+		String query = "INSERT INTO user (name, email, phone, gender, password, type, status, created_time) VALUES (?,?,?,?,?,?,?,?)";
 
 		try (PreparedStatement pstmt = DBUtil.prepareWithKeys(DBUtil.getConnection(), query)) {
 
@@ -29,8 +29,6 @@ public class UserDAO {
 			pstmt.setByte(6, (byte) UserType.CUSTOMER.getCode());
 			pstmt.setByte(7, (byte) UserStatus.ACTIVE.getCode());
 			pstmt.setLong(8, System.currentTimeMillis());
-			pstmt.setObject(9, null);
-			pstmt.setObject(10, null);
 
 			int rows = DBUtil.executeUpdate(pstmt);
 			if (rows > 0) {
@@ -64,34 +62,41 @@ public class UserDAO {
 	}
 
 	public Map<String, Object> authenticate(String email) {
+	    String query = "SELECT user_id, password, type, " +
+	                   "(SELECT branch_id FROM employee WHERE employee_id = user.user_id) AS branch_id " +
+	                   "FROM user WHERE email = ?";
 
-		String query = "SELECT user_id,password,type FROM user WHERE email = ?";
+	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+	        pstmt.setString(1, email);
 
-		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+	            if (rs.next()) {
+	                Map<String, Object> result = new HashMap<>();
+	                result.put("userId", rs.getLong("user_id"));
+	                result.put("userType", rs.getByte("type"));
+	                result.put("password", rs.getString("password"));
 
-			pstmt.setString(1, email);
+	                byte role = rs.getByte("type");
+	                if (role == 2 || role == 3 || role == 4) {
+	                    long branchId = rs.getLong("branch_id");
+	                    if (!rs.wasNull()) {
+	                        result.put("branchId", branchId);
+	                    }
+	                }
 
-			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-				if (rs.next()) {
-					Map<String, Object> result = new HashMap<String, Object>();
-
-					result.put("userId", rs.getString("user_id"));
-					result.put("userType", rs.getByte("type"));
-					result.put("password", rs.getString("password"));
-
-					return result;
-				}
-				return null;
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new DBException("Error occurred while fetching the user credentials.", e);
-		}
-
+	                return result;
+	            }
+	            return null;
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        throw new DBException("Error occurred while fetching the user credentials.", e);
+	    }
 	}
 
+
 	public User getUserById(long userId) {
-		String query = "SELECT user_id, name, email, phone, gender,type, status FROM user WHERE user_id = ?";
+		String query = "SELECT user_id, name, email, phone, gender,type, status, modified_by, modified_time FROM user WHERE user_id = ?";
 
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			pstmt.setLong(1, userId);
@@ -106,6 +111,8 @@ public class UserDAO {
 					user.setGender(Gender.fromString(rs.getString("gender")));
 					user.setType(UserType.fromCode(rs.getByte("type")));
 					user.setStatus(UserStatus.fromCode(rs.getByte("status")));
+					user.setModifiedBy(rs.getLong("modified_by"));
+					user.setModifiedTime(rs.getLong("modified_time"));
 					return user;
 				}
 				return null;
@@ -129,13 +136,14 @@ public class UserDAO {
 			pstmt.setString(3, user.getPhone());
 			pstmt.setString(4, user.getGender().name());
 			pstmt.setLong(5, now);
-			pstmt.setLong(6, user.getUserId());
+			pstmt.setLong(6, user.getModifiedBy());
 			pstmt.setLong(7, user.getUserId());
 
 			int rows = DBUtil.executeUpdate(pstmt);
+			System.out.println(rows);
 			if (rows > 0) {
 				user.setModifiedBy(user.getUserId());
-				user.setModifiedTime(user.getModifiedTime());
+				user.setModifiedTime(System.currentTimeMillis());
 				return user;
 			}
 			return null;
@@ -181,14 +189,14 @@ public class UserDAO {
 
 	}
 	
-	public boolean updateToEmployee(long employee_id) {
+	public boolean updateToEmployee(long employeeId, long modifiedBy) {
 		String query = "UPDATE user SET type=?,modified_time=?,modified_by=? WHERE user_id=?";
 		
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			pstmt.setByte(1, (byte)UserType.EMPLOYEE.getCode());
 			pstmt.setLong(2, System.currentTimeMillis());
-			pstmt.setLong(3, 0);
-			pstmt.setLong(4, employee_id);
+			pstmt.setLong(3, modifiedBy);
+			pstmt.setLong(4, employeeId);
 	
 			int rows = DBUtil.executeUpdate(pstmt);
 			return rows>0;

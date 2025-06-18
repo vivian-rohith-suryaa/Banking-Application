@@ -1,14 +1,25 @@
 package com.viiva.wrapper.user;
 
 import java.util.Map;
-
 import com.viiva.pojo.customer.Customer;
 import com.viiva.pojo.user.User;
+import com.viiva.session.SessionAware;
 
-public class UserWrapper {
+public class UserWrapper implements SessionAware{
 
 	private Customer customer;
 	private User user;
+	private Map<String, Object> sessionAttributes;
+
+	@Override
+	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
+		this.sessionAttributes = sessionAttributes;
+	}
+	
+	@Override
+	public Map<String, Object> getSessionAttributes() {
+	    return this.sessionAttributes;
+	}
 
 	public Customer getCustomer() {
 		return customer;

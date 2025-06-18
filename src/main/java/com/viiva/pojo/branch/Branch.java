@@ -2,7 +2,9 @@ package com.viiva.pojo.branch;
 
 import java.util.Map;
 
-public class Branch {
+import com.viiva.session.SessionAware;
+
+public class Branch implements SessionAware{
 
 	private Long branchId;
 	private Long managerId;
@@ -13,6 +15,17 @@ public class Branch {
 	private Long createdTime;
 	private Long modifiedTime;
 	private Long modifiedBy;
+	private Map<String, Object> sessionAttributes;
+
+	@Override
+	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
+		this.sessionAttributes = sessionAttributes;
+	}
+	
+	@Override
+	public Map<String, Object> getSessionAttributes() {
+	    return this.sessionAttributes;
+	}
 
 	public Long getBranchId() {
 		return branchId;

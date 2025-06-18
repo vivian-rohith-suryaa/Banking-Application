@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import com.viiva.dao.user.UserDAO;
 import com.viiva.exceptions.AuthException;
-import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
 import com.viiva.util.BasicUtil;
@@ -22,53 +21,46 @@ public class SigninHandler implements Handler<SigninRequest> {
 		case "POST":
 
 			try {
-				if (!BasicUtil.isNull(requestData)) {
-					String validationResult = InputValidator.validateSignin(requestData).toString();
-
-					if (!validationResult.isEmpty()) {
-						throw new AuthException("Invalid Input(s) found: " + validationResult);
-					}
-
-					UserDAO userDao = new UserDAO();
-
-					String email = requestData.getEmail();
-
-					Map<String, Object> result = userDao.authenticate(email);
-					System.out.println(result);
-					String hashedPassword = (String) result.get("password");
-
-					if (!BasicUtil.isNull(hashedPassword)) {
-						if (BasicUtil.checkPassword(requestData.getPassword(), hashedPassword)) {
-
-							result.remove("password");
-
-							if (!BasicUtil.isNull(result)) {
-
-								DBUtil.commit();
-
-								Map<String, Object> responseData = new HashMap<>();
-
-								responseData.put("message", "Signin Successful");
-								responseData.put("userId", result.get("userId"));
-								responseData.put("userType", result.get("userType"));
-
-								return responseData;
-							} else {
-								DBUtil.rollback();
-								throw new DBException("Failed to fetch session details.");
-							}
-						} else {
-							DBUtil.rollback();
-							throw new AuthException("Passwords do not match.");
-						}
-					} else {
-						DBUtil.rollback();
-						throw new AuthException("Signing in failed. No valid user found for this email: " + email);
-					}
-				} else {
-					throw new InputException("Null Input.");
+				if (BasicUtil.isNull(requestData)) {
+					throw new InputException("Invalid (Null) Input.");
 				}
+				String validationResult = InputValidator.validateSignin(requestData).toString();
+
+				if (!validationResult.isEmpty()) {
+					throw new AuthException("Invalid Input(s) found: " + validationResult);
+				}
+
+				UserDAO userDao = new UserDAO();
+
+				String email = requestData.getEmail();
+
+				Map<String, Object> result = userDao.authenticate(email);
+
+				if (BasicUtil.isNull(result)) {
+					throw new AuthException("Invalid email. No user found.");
+				}
+				String hashedPassword = (String) result.get("password");
+
+				if (!BasicUtil.checkPassword(requestData.getPassword(), hashedPassword)) {
+					throw new AuthException("Passwords do not match.");
+				}
+
+				result.remove("password");
+				DBUtil.commit();
+
+				Map<String, Object> responseData = new HashMap<>();
+				responseData.put("message", "Signin Successful");
+				responseData.put("userId", result.get("userId"));
+				responseData.put("role", result.get("userType"));
+
+				if (result.containsKey("branchId")) {
+					responseData.put("branchId", result.get("branchId"));
+				}
+
+				return responseData;
+
 			} catch (Exception e) {
+				DBUtil.rollback();
 				throw (Exception) e;
 			}
 

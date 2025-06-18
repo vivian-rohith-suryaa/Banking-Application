@@ -16,12 +16,15 @@ import com.viiva.handler.registry.HandlerRegistry;
 import com.viiva.pojo.branch.Branch;
 import com.viiva.pojo.employee.Employee;
 import com.viiva.pojo.request.Request;
+import com.viiva.session.SessionAware;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.ResponseUtil;
 import com.viiva.util.ServletUtil;
 import com.viiva.wrapper.account.AccountRequest;
 import com.viiva.wrapper.account.AccountTransaction;
 import com.viiva.wrapper.user.UserWrapper;
+import com.viiva.util.SessionUtil;
+
 
 public class ServiceServlet extends HttpServlet {
 
@@ -74,18 +77,29 @@ public class ServiceServlet extends HttpServlet {
 			} else if (requestData instanceof AccountRequest) {
 				((AccountRequest) requestData).setPathParams(pathParams);
 			} else if (requestData instanceof AccountTransaction) {
-				System.out.println("Came here");
 				((AccountTransaction) requestData).setPathParams(pathParams);
 			}
+			
+			if (requestData instanceof SessionAware) {
+			    if (request.getSession(false) != null) {
+			        Map<String, Object> sessionAttributes = SessionUtil.extractSessionAttributes(request);
+			        ((SessionAware) requestData).setSessionAttributes(sessionAttributes);
+			    }
+			}
+
 					
 			Object result = handler.handle(methodAction, requestData);
 
 			Map<String, Object> resultData = (Map<String, Object>) result;
+			
+			if (request.getRequestURI().endsWith("/auth/signin") && methodAction.equalsIgnoreCase("POST")) {
+			    SessionUtil.setupUserSession(request, resultData);
+			}
 
 			response.setContentType("application/json");
 			response.setCharacterEncoding("UTF-8");
-
-			ResponseUtil.sendSuccess(response, result);
+			System.out.println(resultData);
+			ResponseUtil.sendSuccess(response, resultData);
 
 		} catch (HandlerNotFoundException e) {
 			ResponseUtil.sendError(response, 404, "Not Found", e.getMessage());

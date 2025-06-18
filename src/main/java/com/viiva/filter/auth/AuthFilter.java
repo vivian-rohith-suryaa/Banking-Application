@@ -51,7 +51,7 @@ public class AuthFilter implements Filter{
 		AuthRule matchedRule = matchedRuleOpt.get();
 		List<Integer> allowedRoles = matchedRule.getRoles();
 		
-		if (allowedRoles.contains((int)0)) {
+		if (allowedRoles.contains(0)) {
 			chain.doFilter(httpRequest, httpResponse);
 			return;
 		}
@@ -62,12 +62,16 @@ public class AuthFilter implements Filter{
 			return;
 		}
 		
-		Integer userRole = (Integer) session.getAttribute("role");
+		byte userRole = ((Number) session.getAttribute("role")).byteValue();
 		
-		if (!allowedRoles.contains(userRole)) {
-			httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: Access denied.");
-			return;
-		}
+		boolean accessAllowed = allowedRoles.stream()
+		        .mapToInt(Integer::intValue)
+		        .anyMatch(allowed -> allowed == userRole);
+
+		    if (!accessAllowed) {
+		        httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden: Access denied.");
+		        return;
+		    }
 
 		System.out.println("Auth Filter passed for role: " + userRole);
 		chain.doFilter(httpRequest, httpResponse);

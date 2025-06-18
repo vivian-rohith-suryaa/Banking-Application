@@ -4,11 +4,24 @@ import java.util.Map;
 
 import com.viiva.pojo.account.Account;
 import com.viiva.pojo.transaction.Transaction;
+import com.viiva.session.SessionAware;
 
-public class AccountTransaction {
+public class AccountTransaction implements SessionAware{
 
 	private Account account;
 	private Transaction transaction;
+	private Map<String, Object> sessionAttributes;
+
+	@Override
+	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
+		this.sessionAttributes = sessionAttributes;
+	}
+	
+	@Override
+	public Map<String, Object> getSessionAttributes() {
+	    return this.sessionAttributes;
+	}
+
 
 	public Account getAccount() {
 		return account;

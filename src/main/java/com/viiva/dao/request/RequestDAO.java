@@ -3,13 +3,16 @@ package com.viiva.dao.request;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.viiva.dao.account.AccountDAO;
 import com.viiva.exceptions.DBException;
 import com.viiva.pojo.request.RequestStatus;
 import com.viiva.pojo.account.AccountType;
 import com.viiva.pojo.request.Request;
+import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
 
 public class RequestDAO {
@@ -87,27 +90,24 @@ public class RequestDAO {
 			
 			int rows = DBUtil.executeUpdate(pstmt);
 			if (rows > 0) {
-				if(request.getStatus().name() == "APPROVED") {
-					AccountDAO accountDao = new AccountDAO();
-					Map<String,Object> account = accountDao.createAccount(request);
-					
-					Map<String,Object> result = new HashMap<String,Object>();
-					result.put("requestId", request.getRequestId());
-					result.put("customerId",request.getCustomerId());
-					result.put("accountId", account.get("accountId"));
-					result.put("status",request.getStatus());
-					result.put("remarks",request.getRemarks());
-					
-					return result;
-				}
-				
-				Map<String,Object> result = new HashMap<String,Object>();
-				result.put("requestId", request.getRequestId());
-				result.put("customerId",request.getCustomerId());
-				result.put("status",request.getStatus());
-				result.put("remarks",request.getRemarks());
-				
-				return result;
+				 Map<String,Object> result = new HashMap<>();
+		            result.put("requestId", request.getRequestId());
+		            result.put("customerId", request.getCustomerId());
+		            result.put("status", request.getStatus());
+		            result.put("remarks", request.getRemarks());
+
+		            if ("APPROVED".equals(request.getStatus().name())) {
+		                AccountDAO accountDao = new AccountDAO();
+		                Map<String,Object> account = accountDao.createAccount(request);
+
+		                if (BasicUtil.isNull(account)) {
+		                    throw new DBException("Account creation failed for approved request.");
+		                }
+
+		                result.put("accountId", account.get("accountId"));
+		            }
+
+		            return result;
 			}
 			return null;
 			
@@ -115,5 +115,33 @@ public class RequestDAO {
 			e.printStackTrace();
 			throw new DBException("Error occurred while updating request", e);
 		}
+	}
+
+	public List<Request> getBranchRequests(long branchId) {
+		String query = "SELECT request_id, customer_id, branch_id, account_type, balance, status, remarks FROM request WHERE branch_id = ?";
+	    List<Request> requests = new ArrayList<>();
+
+	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+	        pstmt.setLong(1, branchId);
+
+	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+	            while (rs.next()) {
+	                Request req = new Request();
+	                req.setRequestId(rs.getLong("request_id"));
+	                req.setCustomerId(rs.getLong("customer_id"));
+	                req.setBranchId(rs.getLong("branch_id"));
+	                req.setAccountType(AccountType.valueOf(rs.getString("account_type")));
+	                req.setBalance(rs.getDouble("balance"));
+	                req.setStatus(RequestStatus.valueOf(rs.getString("status")));
+	                req.setRemarks(rs.getString("remarks"));
+	                requests.add(req);
+	            }
+	        }
+
+	        return requests;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        throw new DBException("Error fetching requests for branch.", e);
+	    }
 	}
 }

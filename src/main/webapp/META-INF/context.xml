@@ -1,7 +1,7 @@
 <Context>
 	<Resource name="jdbc/viivadb" auth="Container"
 		type="javax.sql.DataSource" maxTotal="50" maxIdle="10"
-		maxWaitMillis="-1" username="vvn" password="root"
+		maxWaitMillis="-1" username="root" password=""
 		driverClassName="com.mysql.cj.jdbc.Driver"
 		url="jdbc:mysql://localhost:3306/viivadb"/>
 </Context>

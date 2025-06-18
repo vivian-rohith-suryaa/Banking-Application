@@ -56,10 +56,11 @@ auth:
       - path: /viiva/branch/:id
         method: GET
         roles: [1,2,3,4]
+
 #Add Branch Info
       - path: /viiva/branch
         method: POST
-        roles: [3,4]
+        roles: [4]
 #Update Branch Info
       - path: /viiva/branch/:id
         method: PUT
@@ -83,7 +84,7 @@ auth:
 #Add Employee
       - path: /viiva/employee
         method: POST
-        roles: [4]
+        roles: [3,4]
 #Update Employee
       - path: /viiva/employee/:id
         method: PUT
