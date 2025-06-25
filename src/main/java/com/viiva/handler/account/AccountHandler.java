@@ -5,15 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.viiva.dao.account.AccountDAO;
+import com.viiva.dao.request.RequestDAO;
 import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
-import com.viiva.handler.request.RequestHandler;
 import com.viiva.pojo.account.Account;
 import com.viiva.pojo.account.AccountType;
 import com.viiva.pojo.request.Request;
-import com.viiva.pojo.request.RequestStatus;
 import com.viiva.session.SessionAware;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
@@ -29,7 +28,6 @@ public class AccountHandler implements Handler<AccountRequest> {
 		}
 
 		long sessionUserId = data.getSessionUserId();
-		long sessionBranchId = data.getSessionBranchId();
 
 		switch (methodAction) {
 
@@ -54,98 +52,133 @@ public class AccountHandler implements Handler<AccountRequest> {
 					throw new InputException("Balance should be greater than Zero.");
 				}
 
-				Request accountRequest = new Request();
-				accountRequest.setCustomerId(sessionUserId);
-				accountRequest.setBranchId(sessionBranchId);
-				accountRequest.setAccountType(acctType);
-				accountRequest.setBalance(balance);
-				accountRequest.setStatus(RequestStatus.PENDING);
+				Request request = data.getRequest();
+				RequestDAO requestDao = new RequestDAO();
+				Map<String, Object> result = requestDao.createRequest(request);
 
-				RequestHandler reqHandler = new RequestHandler();
-
-				Object result = reqHandler.handle("POST", accountRequest);
+				if (BasicUtil.isNull(result)) {
+					throw new DBException("Couldn't request for an account");
+				}
 
 				DBUtil.commit();
-				return result;
+
+				Map<String, Object> responseData = new HashMap<String, Object>();
+				responseData.put("message", "Request created for an account.");
+				responseData.put("requestID", result.get("requestId"));
+				responseData.put("customerId", result.get("customerId"));
+				responseData.put("status", result.get("status"));
+
+				return responseData;
+
 			} catch (Exception e) {
 				DBUtil.rollback();
 				throw (Exception) e;
 			}
 
 		case "GET":
-
 			try {
 				if (BasicUtil.isNull(data)) {
 					throw new InputException("Invalid (Null) Input.");
 				}
+
+				byte sessionRole = data.getSessionRole();
+				Long sessionBranchId = data.getSessionBranchId();
+
 				AccountDAO accountDao = new AccountDAO();
-				
+
 				Account inputAccount = data.getAccount();
 				
-				if (!BasicUtil.isBlank(inputAccount.getAccountId())) {
-					long accountId = inputAccount.getAccountId();
+				if (inputAccount != null) {
+					if (!BasicUtil.isBlank(inputAccount.getAccountId())) {
+						long accountId = inputAccount.getAccountId();
+						Account account = accountDao.getAccountById(accountId);
 
-					Account account = accountDao.getAccountById(accountId);
+						if (BasicUtil.isNull(account)) {
+							throw new DBException("Account not found.");
+						}
 
-					if (BasicUtil.isNull(account)) {
-						throw new DBException("Account not found.");
-					}
-					
-					if (account.getCustomerId() != sessionUserId) {
-		                throw new AuthException("Access Denied: Unauthorised to fetch the account.");
-		            }
+						if (sessionRole < 2 && account.getCustomerId() != sessionUserId) {
+							throw new AuthException("Access Denied: Unauthorized to fetch this account.");
+						}
 
-					DBUtil.commit();
+						DBUtil.commit();
 
-					Map<String, Object> responseData = new HashMap<String, Object>();
-					responseData.put("message", "Account Details fetched successfully.");
-					responseData.put("accountId", account.getAccountId());
-					responseData.put("customerId", account.getCustomerId());
-					responseData.put("branchId", account.getBranchId());
-					responseData.put("accountType", account.getAccountType());
-					responseData.put("balance", account.getBalance());
-					responseData.put("status", account.getStatus());
-
-					return responseData;
-
-				} else if (!BasicUtil.isBlank(inputAccount.getCustomerId())) {
-					long customerId = inputAccount.getCustomerId();
-					
-					if (customerId != sessionUserId) {
-		                throw new AuthException("Access Denied: Unauthorised to fetch the account.");
-		            }
-
-					List<Account> accounts = accountDao.getUserAccounts(customerId);
-
-					if (accounts.isEmpty()) {
-						throw new DBException("Accounts not found for the User Id. ");
+						Map<String, Object> response = new HashMap<>();
+						response.put("message", "Account Details fetched successfully.");
+						response.put("accountId", account.getAccountId());
+						response.put("customerId", account.getCustomerId());
+						response.put("branchId", account.getBranchId());
+						response.put("accountType", account.getAccountType());
+						response.put("balance", account.getBalance());
+						response.put("status", account.getStatus());
+						return response;
 					}
 
-					DBUtil.commit();
+					if (!BasicUtil.isBlank(inputAccount.getCustomerId())) {
+						long customerId = inputAccount.getCustomerId();
 
-					List<Map<String, Object>> accountList = new ArrayList<>();
-					for (Account account : accounts) {
-						Map<String, Object> accountMap = new HashMap<>();
-						accountMap.put("accountId", account.getAccountId());
-						accountMap.put("customerId", account.getCustomerId());
-						accountMap.put("branchId", account.getBranchId());
-						accountMap.put("accountType", account.getAccountType());
-						accountMap.put("balance", account.getBalance());
-						accountMap.put("status", account.getStatus());
-						accountList.add(accountMap);
+						if (sessionRole < 2 && customerId != sessionUserId) {
+							throw new AuthException("Access Denied: Unauthorized to fetch accounts.");
+						}
+
+						List<Account> accounts = accountDao.getUserAccounts(customerId);
+						if (accounts.isEmpty()) {
+							throw new DBException("Accounts not found for this customer.");
+						}
+
+						DBUtil.commit();
+
+						List<Map<String, Object>> accountList = new ArrayList<>();
+						for (Account acc : accounts) {
+							Map<String, Object> map = new HashMap<>();
+							map.put("accountId", acc.getAccountId());
+							map.put("customerId", acc.getCustomerId());
+							map.put("branchId", acc.getBranchId());
+							map.put("accountType", acc.getAccountType());
+							map.put("balance", acc.getBalance());
+							map.put("status", acc.getStatus());
+							accountList.add(map);
+						}
+
+						Map<String, Object> response = new HashMap<>();
+						response.put("message", "Customer's accounts fetched successfully.");
+						response.put("accounts", accountList);
+						return response;
 					}
-					Map<String, Object> responseData = new HashMap<String, Object>();
-					responseData.put("message", "User's accounts fetched successfully.");
-					responseData.put("accounts", accountList);
-					return responseData;
-
-				} else {
-					throw new InputException("Null/Empty Account Id.");
 				}
+
+				if (sessionRole < 2) {
+					throw new AuthException("Access Denied: Unauthorized to fetch all accounts.");
+				}
+
+				Map<String, String> queryParams = data.getQueryParams();
+				List<Account> accounts = accountDao.getAllAccounts(sessionBranchId, sessionRole, queryParams);
+				if (accounts.isEmpty()) {
+					throw new DBException("No accounts found.");
+				}
+
+				DBUtil.commit();
+
+				List<Map<String, Object>> accountList = new ArrayList<>();
+				for (Account acc : accounts) {
+					Map<String, Object> accountMap = new HashMap<>();
+					accountMap.put("accountId", acc.getAccountId());
+					accountMap.put("customerId", acc.getCustomerId());
+					accountMap.put("branchId", acc.getBranchId());
+					accountMap.put("accountType", acc.getAccountType());
+					accountMap.put("balance", acc.getBalance());
+					accountMap.put("status", acc.getStatus());
+					accountList.add(accountMap);
+				}
+
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Accounts fetched successfully.");
+				response.put("accounts", accountList);
+				return response;
 
 			} catch (Exception e) {
 				DBUtil.rollback();
-				throw (Exception) e;
+				throw e;
 			}
 
 		case "PUT":
@@ -158,10 +191,10 @@ public class AccountHandler implements Handler<AccountRequest> {
 				Account existingAccount = accountDao.getAccountById(accountId);
 
 				if (BasicUtil.isNull(existingAccount)) {
-				    throw new DBException("Account not found.");
+					throw new DBException("Account not found.");
 				}
 				if (existingAccount.getCustomerId() != sessionUserId) {
-				    throw new AuthException("Access Denied: Unauthorised to update the account.");
+					throw new AuthException("Access Denied: Unauthorised to update the account.");
 				}
 
 				Account account = data.getAccount();

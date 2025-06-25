@@ -1,10 +1,17 @@
 @charset "UTF-8";
 
-/* Global Styling */
 body {
-    margin: 0;
+    margin: 0px;
+    padding-top: 6.5vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #eef1f5;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-wrapper {
+    display: flex;
+    height: calc(100vh - 6.5vh - 6vh);
 }
 
 .sidebar {
@@ -15,7 +22,7 @@ body {
     flex-direction: column;
     position: fixed;
     top: 6.5vh;
-    bottom: 0;
+    bottom: 6vh;
     left: 0;
     z-index: 999;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
@@ -36,38 +43,36 @@ body {
     cursor: pointer;
 }
 
-.menu-item.active {
-    background-color: #1d3557;
-    border-left: 4px solid gold;
-}
-
 .menu-item img {
     width: 24px;
     height: 24px;
     margin-right: 15px;
 }
 
-.menu-item a {
-    text-decoration: none;
+.menu-item[data-page="dashboard.jsp"] img {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px; /* keep consistent spacing */
+}
+
+.menu-item span {
     color: white;
     flex-grow: 1;
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        width: 180px;
-    }
-
-    .dashboard-content-wrapper {
-        margin-left: 190px;
-        padding: 20px;
-    }
-
-    .dashboard-card {
-        padding: 20px;
-    }
-
-    .menu-item {
-        font-size: 14px;
-    }
+.main-content {
+    margin-left: 220px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    background-color: #f8f9fa;
+    overflow-y: auto;
 }
+
+.menu-item.active {
+    background-color: #2a3d5f;
+    border-left: 4px solid gold;
+}
+

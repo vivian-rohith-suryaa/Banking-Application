@@ -1,6 +1,8 @@
 package com.viiva.handler.user;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.viiva.dao.customer.CustomerDAO;
 import com.viiva.dao.user.UserDAO;
@@ -20,7 +22,7 @@ public class UserHandler implements Handler<UserWrapper> {
 
 	@Override
 	public Object handle(String methodAction, UserWrapper data) throws Exception {
-		
+
 		if (!(data instanceof SessionAware)) {
 			throw new AuthException("Unauthorized: Session not found.");
 		}
@@ -30,18 +32,22 @@ public class UserHandler implements Handler<UserWrapper> {
 
 		case "GET":
 			try {
-
-				if (BasicUtil.isNull(data) || BasicUtil.isNull(data.getUser())) {
+				if (BasicUtil.isNull(data)) {
 					throw new InputException("Invalid (Null) Input.");
 				}
+
+				if (BasicUtil.isNull(data.getUser()) || BasicUtil.isBlank(data.getUser().getUserId())) {
+					return getAllUsers(data);
+				}
+
 				long userId = data.getUser().getUserId();
 				if (BasicUtil.isBlank(userId)) {
 					throw new InputException("Null/Empty User Id");
 				}
-				
+
 				if (sessionUserId != data.getUser().getUserId()) {
 					throw new AuthException("Access Denied: Unauthorized access to user details.");
-                }
+				}
 				UserDAO userDao = new UserDAO();
 				User user = userDao.getUserById(userId);
 
@@ -60,7 +66,7 @@ public class UserHandler implements Handler<UserWrapper> {
 				DBUtil.commit();
 
 				Map<String, Object> responseData = new HashMap<String, Object>();
-				
+
 				responseData.put("message", "User Fetched Successfully");
 				responseData.put("userId", user.getUserId());
 				responseData.put("name", user.getName());
@@ -89,10 +95,10 @@ public class UserHandler implements Handler<UserWrapper> {
 				}
 
 				String validationResult = InputValidator.validateUser(data).toString();
-				
+
 				if (sessionUserId != data.getUser().getUserId()) {
-                    throw new AuthException("Access Denied: Unauthorized Access to modify user details.");
-                }
+					throw new AuthException("Access Denied: Unauthorized Access to modify user details.");
+				}
 
 				if (!validationResult.isEmpty()) {
 					throw new InputException("Invalid Input(s) found: " + validationResult);
@@ -100,9 +106,9 @@ public class UserHandler implements Handler<UserWrapper> {
 
 				User user = data.getUser();
 				UserDAO userDao = new UserDAO();
-				
+
 				user.setModifiedBy(sessionUserId);
-				
+
 				User updatedUser = userDao.updateUser(user);
 				if (BasicUtil.isNull(updatedUser)) {
 					throw new DBException("Updating User details failed.");
@@ -148,6 +154,54 @@ public class UserHandler implements Handler<UserWrapper> {
 	@Override
 	public Class<UserWrapper> getRequestType() {
 		return UserWrapper.class;
+	}
+
+	private Object getAllUsers(UserWrapper data) throws Exception {
+
+		Map<String, Object> session = data.getSessionAttributes();
+		byte role = Byte.parseByte(session.get("role").toString());
+
+		Long branchId = session.containsKey("branchId") ? Long.parseLong(session.get("branchId").toString()) : null;
+		Map<String, String> queryParams = data.getQueryParams();
+
+		UserDAO userDao = new UserDAO();
+		CustomerDAO customerDao = new CustomerDAO();
+
+		List<User> users = userDao.getAllUsers(role, branchId, queryParams);
+		
+		if (users.isEmpty()) {
+			throw new DBException("No Users Found.");
+		}
+		
+		List<Map<String, Object>> resultList = new ArrayList<>();
+
+		for (User user : users) {
+			Customer customer = customerDao.getCustomerById(user.getUserId());
+
+			if (BasicUtil.isNull(customer)) {
+				throw new DBException("Fetching User Details Failed.");
+			}
+
+			Map<String, Object> userMap = new HashMap<>();
+			userMap.put("userId", user.getUserId());
+			userMap.put("name", user.getName());
+			userMap.put("email", user.getEmail());
+			userMap.put("phone", user.getPhone());
+			userMap.put("gender", user.getGender());
+			userMap.put("status", user.getStatus());
+			userMap.put("type", user.getType());
+			userMap.put("dob", customer != null ? customer.getDob() : null);
+			userMap.put("aadhar", customer != null ? customer.getAadhar() : null);
+			userMap.put("pan", customer != null ? customer.getPan() : null);
+			userMap.put("address", customer != null ? customer.getAddress() : null);
+
+			resultList.add(userMap);
+		}
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("message", "Users fetched successfully.");
+		result.put("users", resultList);
+		return result;
 	}
 
 }

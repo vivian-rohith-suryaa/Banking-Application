@@ -4,7 +4,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.viiva.exceptions.DBException;
 import com.viiva.pojo.user.Gender;
@@ -62,38 +64,37 @@ public class UserDAO {
 	}
 
 	public Map<String, Object> authenticate(String email) {
-	    String query = "SELECT user_id, password, type, " +
-	                   "(SELECT branch_id FROM employee WHERE employee_id = user.user_id) AS branch_id " +
-	                   "FROM user WHERE email = ?";
+		String query = "SELECT user_id, password, type, "
+				+ "(SELECT branch_id FROM employee WHERE employee_id = user.user_id) AS branch_id "
+				+ "FROM user WHERE email = ?";
 
-	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
-	        pstmt.setString(1, email);
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+			pstmt.setString(1, email);
 
-	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-	            if (rs.next()) {
-	                Map<String, Object> result = new HashMap<>();
-	                result.put("userId", rs.getLong("user_id"));
-	                result.put("userType", rs.getByte("type"));
-	                result.put("password", rs.getString("password"));
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				if (rs.next()) {
+					Map<String, Object> result = new HashMap<>();
+					result.put("userId", rs.getLong("user_id"));
+					result.put("userType", rs.getByte("type"));
+					result.put("password", rs.getString("password"));
 
-	                byte role = rs.getByte("type");
-	                if (role == 2 || role == 3 || role == 4) {
-	                    long branchId = rs.getLong("branch_id");
-	                    if (!rs.wasNull()) {
-	                        result.put("branchId", branchId);
-	                    }
-	                }
+					byte role = rs.getByte("type");
+					if (role == 2 || role == 3 || role == 4) {
+						long branchId = rs.getLong("branch_id");
+						if (!rs.wasNull()) {
+							result.put("branchId", branchId);
+						}
+					}
 
-	                return result;
-	            }
-	            return null;
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        throw new DBException("Error occurred while fetching the user credentials.", e);
-	    }
+					return result;
+				}
+				return null;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while fetching the user credentials.", e);
+		}
 	}
-
 
 	public User getUserById(long userId) {
 		String query = "SELECT user_id, name, email, phone, gender,type, status, modified_by, modified_time FROM user WHERE user_id = ?";
@@ -128,7 +129,7 @@ public class UserDAO {
 	public User updateUser(User user) {
 
 		String query = "UPDATE user SET name=?,email=?,phone=?,gender=?,modified_time=?,modified_by=? WHERE user_id=?";
-		
+
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			long now = System.currentTimeMillis();
 			pstmt.setString(1, user.getName());
@@ -165,8 +166,8 @@ public class UserDAO {
 			throw new DBException("Error occurred while updating the user details.", e);
 		}
 	}
-	
-	public Map<String,Object> getEmployeeById(long employee_id) {
+
+	public Map<String, Object> getEmployeeById(long employee_id) {
 		String query = "SELECT user_id,type FROM user WHERE user_id = ?";
 
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
@@ -188,23 +189,116 @@ public class UserDAO {
 		}
 
 	}
-	
+
 	public boolean updateToEmployee(long employeeId, long modifiedBy) {
 		String query = "UPDATE user SET type=?,modified_time=?,modified_by=? WHERE user_id=?";
-		
+
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
-			pstmt.setByte(1, (byte)UserType.EMPLOYEE.getCode());
+			pstmt.setByte(1, (byte) UserType.EMPLOYEE.getCode());
 			pstmt.setLong(2, System.currentTimeMillis());
 			pstmt.setLong(3, modifiedBy);
 			pstmt.setLong(4, employeeId);
-	
+
 			int rows = DBUtil.executeUpdate(pstmt);
-			return rows>0;
-			
-		}  catch (SQLException e) {
+			return rows > 0;
+
+		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new DBException("Error occurred while updating the user details.", e);
 		}
 	}
+
+	public List<User> getAllUsers(byte role, Long branchId, Map<String, String> filters) throws Exception{
+	    List<User> users = new ArrayList<>();
+	    
+	    int page = 1;
+	    int limit = 10;
+
+	    if (filters != null) {
+	        if (filters.containsKey("page")) {
+	            try {
+	                page = Integer.parseInt(filters.get("page"));
+	            } catch (NumberFormatException e) {
+	                page = 1;
+	            }
+	            filters.remove("page");
+	        }
+	        if (filters.containsKey("limit")) {
+	            try {
+	                limit = Integer.parseInt(filters.get("limit"));
+	            } catch (NumberFormatException e) {
+	                limit = 10;
+	            }
+	            filters.remove("limit");
+	        }
+	    }
+
+	    int offset = (page - 1) * limit;
+
+
+	    StringBuilder query = new StringBuilder(
+	        "SELECT DISTINCT u.user_id, u.name, u.email, u.phone, u.gender, u.type, u.status, u.modified_by, u.modified_time " +
+	        "FROM user u"
+	    );
+
+	    if (role == 2 || role == 3) {
+	        query.append(" INNER JOIN account a ON u.user_id = a.customer_id WHERE a.branch_id = ?");
+	    } else {
+	        query.append(" WHERE 1=1");
+	    }
+
+	    if (filters != null) {
+	        if (filters.containsKey("type")) {
+	            query.append(" AND u.type = ?");
+	        }
+	        if (filters.containsKey("userId")) {
+	            query.append(" AND u.user_id = ?");
+	        }
+	    }
+	    
+	    query.append(" ORDER BY u.user_id DESC LIMIT ? OFFSET ?");
+	    
+	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
+	        int index = 1;
+
+	        if (role == 2 || role == 3) {
+	            pstmt.setLong(index++, branchId);
+	        }
+
+	        if (filters != null) {
+	            if (filters.containsKey("type")) {
+	                pstmt.setString(index++, filters.get("type"));
+	            }
+	            if (filters.containsKey("userId")) {
+	                pstmt.setString(index++, filters.get("userId"));
+	            }
+	        }
+	        
+	        pstmt.setInt(index++, limit);
+	        pstmt.setInt(index, offset);
+
+	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+	            while (rs.next()) {
+	                User user = new User();
+	                user.setUserId(rs.getLong("user_id"));
+	                user.setName(rs.getString("name"));
+	                user.setEmail(rs.getString("email"));
+	                user.setPhone(rs.getString("phone"));
+	                user.setGender(Gender.fromString(rs.getString("gender")));
+	                user.setType(UserType.fromCode(rs.getByte("type")));
+	                user.setStatus(UserStatus.fromCode(rs.getByte("status")));
+	                user.setModifiedBy(rs.getLong("modified_by"));
+	                user.setModifiedTime(rs.getLong("modified_time"));
+	                users.add(user);
+	            }
+	        }
+
+	        return users;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        throw new DBException("Error occurred while fetching users.", e);
+	    }
+	}
+
 
 }

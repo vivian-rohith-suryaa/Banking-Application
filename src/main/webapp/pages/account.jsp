@@ -1,132 +1,64 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="javax.servlet.http.HttpSession"%>
+<%@ page import="javax.servlet.http.HttpSession" %>
 <%
-HttpSession sess = request.getSession(false);
-long userId = (sess != null && sess.getAttribute("userId") != null) ? (long) sess.getAttribute("userId") : -1;
+    HttpSession sess = request.getSession(false);
+    long userId = (sess != null && sess.getAttribute("userId") != null) ? (long) sess.getAttribute("userId") : -1;
 %>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Viiva Banc</title>
-    <link rel="stylesheet" href="<%=request.getContextPath()%>/styles/profile.css">
-</head>
-<body>
-
-<div class="profile-container">
-    <div class="profile-header">
-        <h2>User Profile</h2>
-        <button id="edit-btn" title="Edit Profile">
-            <img src="<%=request.getContextPath()%>/icons/edit.svg" alt="Edit">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/styles/account.css">
+<div class="account-wrapper">
+    <div class="account-header">
+        <h3>View Accounts</h3>
+        <button id="request-account-btn" title="Request New Account">
+            <img src="<%= request.getContextPath() %>/icons/add-account.svg" alt="Request Account">
         </button>
     </div>
 
-    <div id="loading" class="loading">Loading profile data...</div>
-
-    <form id="profile-form" class="profile-form" style="display: none;">
-        <label>User ID: <input name="userId" readonly class="readonly"></label>
-        <label>Name: <input name="name" readonly></label>
-
-        <label>Email: <input name="email" readonly></label>
-        <label>Phone: <input name="phone" readonly></label>
-
-        <label>Address: <input name="address" readonly></label>
-        <label>Date of Birth: <input name="dob" readonly></label>
-
-        <label>Gender: <input name="gender" readonly></label>
-        <label>Aadhar: <input name="aadhar" readonly></label>
-
-        <label>PAN: <input name="pan" readonly></label>
-        <label>Status: <input name="status" readonly class="readonly"></label>
-
-        <button type="button" id="update-btn" class="edit-hidden">Update</button>
-    </form>
+    <div id="view-section" class="account-section active">
+        <select id="account-select">
+            <option value="all">Select All</option>
+        </select>
+        <div id="account-result" class="account-display"></div>
+    </div>
 </div>
 
-<script>
-    const userId = <%=userId%>;
+<!-- Request Modal -->
+<div id="request-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3>Request New Account</h3>
+        <form id="account-request-form">
+            <label>Account Type:
+                <select name="accountType" required>
+                    <option value="SAVINGS">Savings</option>
+                    <option value="FIXED_DEPOSIT">Fixed Deposit</option>
+                    <option value="CURRENT">Current</option>
+                </select>
+            </label>
 
-    document.addEventListener("DOMContentLoaded", () => {
-        fetch(`<%=request.getContextPath()%>/viiva/user/${userId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to fetch user profile");
-            return res.json();
-        })
-        .then(response => {
-            const data = response.data;
-            document.getElementById("loading").style.display = "none";
-            const form = document.getElementById("profile-form");
-            form.style.display = "grid";
+            <label>Initial Balance:
+                <input type="text" name="balance" required
+                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^0+(\d)/, '$1')"
+                    onkeypress="if(['-','e','E'].includes(event.key)) event.preventDefault();">
+            </label>
 
-            form.userId.value = data.userId || '';
-            form.name.value = data.name || '';
-            form.email.value = data.email || '';
-            form.phone.value = data.phone || '';
-            form.address.value = data.address || '';
-            form.dob.value = data.dob || '';
-            form.gender.value = data.gender || '';
-            form.aadhar.value = data.aadhar || '';
-            form.pan.value = data.pan || '';
-            form.status.value = data.status || '';
-        })
-        .catch(err => {
-            document.getElementById("loading").textContent = "Failed to load profile data.";
-            console.error(err);
-        });
-    });
+            <label>Branch ID:
+                <input type="text" name="branchId" required
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                    onkeypress="if(['-','e','E'].includes(event.key)) event.preventDefault();">
+            </label>
 
-    document.getElementById("edit-btn").addEventListener("click", () => {
-        const form = document.getElementById("profile-form");
-        const inputs = form.querySelectorAll("input:not(.readonly)");
-        const updateBtn = document.getElementById("update-btn");
+            <div class="modal-actions">
+                <button type="submit">Submit</button>
+                <button type="button" id="close-modal-btn">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-        inputs.forEach(input => {
-            input.readOnly = !input.readOnly;
-        });
+<script type="module">
+    const contextPath = "<%= request.getContextPath() %>";
+    const userId = <%= userId %>;
 
-        updateBtn.classList.toggle("edit-hidden");
-    });
-
-    document.getElementById("update-btn").addEventListener("click", () => {
-        const form = document.getElementById("profile-form");
-        const formData = {
-            name: form.name.value,
-            email: form.email.value,
-            phone: form.phone.value,
-            address: form.address.value,
-            dob: form.dob.value,
-            gender: form.gender.value,
-            aadhar: form.aadhar.value,
-            pan: form.pan.value
-        };
-
-        fetch(`<%=request.getContextPath()%>/viiva/user/${userId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to update profile");
-            return res.json();
-        })
-        .then(response => {
-            alert(response.message || "Profile updated successfully.");
-            location.reload();
-        })
-        .catch(err => {
-            alert("Failed to update profile.");
-            console.error(err);
-        });
-    });
+    import(`${contextPath}/scripts/account.js`)
+        .then(module => module.initAccountModule(contextPath, userId))
+        .catch(err => console.error("Failed to load account module:", err));
 </script>
-
-</body>
-</html>

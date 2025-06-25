@@ -1,6 +1,8 @@
 package com.viiva.handler.branch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import com.viiva.dao.branch.BranchDAO;
 import com.viiva.exceptions.AuthException;
@@ -23,8 +25,8 @@ public class BranchHandler implements Handler<Branch> {
 		}
 
 		byte sessionRole = data.getSessionRole();
-		long sessionUserId = data.getSessionUserId();
-		long sessionBranchId = data.getSessionBranchId();
+		Long sessionUserId = data.getSessionUserId();
+
 
 		switch (methodAction) {
 
@@ -70,35 +72,61 @@ public class BranchHandler implements Handler<Branch> {
 				if (BasicUtil.isNull(data)) {
 					throw new InputException("Invalid (Null) Input.");
 				}
-				long branchId = data.getBranchId();
-
-				if (BasicUtil.isBlank(branchId)) {
-					throw new InputException("Null/Empty Branch Id");
-				}
-
 				BranchDAO branchDao = new BranchDAO();
-				Branch branch = branchDao.getBranchById(branchId);
 
-				if (BasicUtil.isNull(branch)) {
-					throw new DBException("Branch Not Found.");
+				if (!BasicUtil.isBlank(data.getBranchId())) {
+					Long branchId= data.getBranchId();
+					Branch branch = branchDao.getBranchById(branchId);
+
+					if (BasicUtil.isNull(branch)) {
+						throw new DBException("Branch Not Found.");
+					}
+
+					DBUtil.commit();
+
+					Map<String, Object> responseData = new HashMap<String, Object>();
+
+					responseData.put("message", "Branch Details fetched successfully.");
+					responseData.put("branchId", branch.getBranchId());
+					responseData.put("managerId", branch.getManagerId());
+					responseData.put("ifscCode", branch.getIfscCode());
+					responseData.put("locality", branch.getLocality());
+					responseData.put("district", branch.getDistrict());
+					responseData.put("state", branch.getState());
+					responseData.put("modifiedBy", branch.getModifiedBy());
+					responseData.put("modifiedTime", branch.getModifiedTime());
+
+					return responseData;
+
+				}
+				
+				Map<String, String> filters = data.getQueryParams();
+
+				List<Branch> branchList = branchDao.getAllBranches(filters);
+				if (branchList.isEmpty()) {
+					throw new DBException("No branches found.");
 				}
 
-				DBUtil.commit();
+				List<Map<String, Object>> branchListResponse = new ArrayList<>();
+				for (Branch branch : branchList) {
+				    Map<String, Object> b = new HashMap<>();
+				    b.put("branchId", branch.getBranchId());
+				    b.put("managerId", branch.getManagerId());
+				    b.put("ifscCode", branch.getIfscCode());
+				    b.put("locality", branch.getLocality());
+				    b.put("district", branch.getDistrict());
+				    b.put("state", branch.getState());
+				    b.put("createdTime", branch.getCreatedTime());
+				    b.put("modifiedTime", branch.getModifiedTime());
+				    b.put("modifiedBy", branch.getModifiedBy());
+				    branchListResponse.add(b);
+				}
 
-				Map<String, Object> responseData = new HashMap<String, Object>();
-
-				responseData.put("message", "Branch Details fetched successfully.");
-				responseData.put("branchId", branch.getBranchId());
-				responseData.put("managerId", branch.getManagerId());
-				responseData.put("ifscCode", branch.getIfscCode());
-				responseData.put("locality", branch.getLocality());
-				responseData.put("district", branch.getDistrict());
-				responseData.put("state", branch.getState());
-				responseData.put("modifiedBy", branch.getModifiedBy());
-				responseData.put("modifiedTime", branch.getModifiedTime());
-
-				return responseData;
-
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Branches fetched successfully.");
+				response.put("branches", branchListResponse);
+				return response;
+				
 			} catch (Exception e) {
 				DBUtil.rollback();
 				throw (Exception) e;
@@ -106,9 +134,14 @@ public class BranchHandler implements Handler<Branch> {
 
 		case "PUT":
 			try {
-				if (sessionRole != 4 || sessionRole != 3) {
+				Long sessionBranchId = data.getSessionBranchId();
+				if (sessionRole < 3) { // roles < 3 are not allowed
+					throw new AuthException("Access Denied: Insufficient privileges.");
+				}
+
+				if (sessionRole == 3) {
 					if (BasicUtil.isNull(sessionBranchId) || sessionBranchId != data.getBranchId()) {
-						throw new AuthException("Access Denied: Unauthorised to update a branch.");
+						throw new AuthException("Access Denied: Employees can only update their own branch.");
 					}
 				}
 				if (BasicUtil.isNull(data)) {

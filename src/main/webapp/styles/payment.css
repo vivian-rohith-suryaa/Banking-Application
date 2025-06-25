@@ -1,0 +1,246 @@
+@charset "UTF-8";
+
+:root {
+    --primary: #004d99;
+    --accent: #2ec27e;
+    --background: #f5f7fa;
+    --card-bg: #ffffff;
+    --modal-bg: rgba(0, 0, 0, 0.15);
+    --glass-blur: blur(6px);
+    --border-radius: 12px;
+    --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Base Layout */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--background);
+    font-family: var(--font);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.payment-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    padding: 2rem 1rem;
+}
+
+/* Payment Card */
+.payment-container {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 2rem 2rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: fadeIn 0.4s ease;
+}
+
+.payment-container h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #e1e8f0;
+    padding-bottom: 0.5rem;
+}
+
+/* Form Styling */
+#payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+#payment-form label {
+    font-size: 14.5px;
+    color: #333;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+}
+
+#payment-form input,
+#payment-form select {
+    margin-top: 6px;
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+    background: #fafbfc;
+    font-size: 14.5px;
+    outline: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+#payment-form input:focus,
+#payment-form select:focus {
+    border-color: var(--primary);
+    background-color: #fff;
+}
+
+/* Submit Button */
+#payment-form button[type="submit"] {
+    margin-top: 1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.85rem;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    width: 25%;
+}
+
+#payment-form button[type="submit"]:hover {
+    background: #26a269;
+    transform: translateY(-1px);
+}
+
+/* Optional Field Group */
+.conditional.hidden {
+    display: none;
+}
+
+/* Message / Result */
+.message-area {
+    margin-top: -1rem;
+    padding: 0.8rem 1rem;
+    border-radius: var(--border-radius);
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.success-message {
+    background-color: #e8fff2;
+    color: #18764b;
+    font-weight: 500;
+}
+
+.error-message {
+    background-color: #ffe9e9;
+    color: #c0392b;
+}
+
+.error-message li {
+    margin-bottom: 6px;
+}
+
+.tx-summary p {
+    margin: 0.3rem 0;
+}
+
+.success-message.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Modal (Inside Payment Card) */
+#pin-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--modal-bg);
+    backdrop-filter: var(--glass-blur);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border-radius: var(--border-radius);
+}
+
+#pin-modal.hidden {
+    display: none;
+}
+
+.modal-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    width: 40%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-card h3 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.modal-card input {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+    font-size: 14.5px;
+    outline: none;
+}
+
+.modal-actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 0.6rem;
+    font-size: 14px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-actions button[type="submit"] {
+    background-color: var(--accent);
+    color: white;
+}
+
+.modal-actions button[type="submit"]:hover {
+    background-color: #26a269;
+}
+
+#close-pin-modal {
+    background-color: #ccc;
+}
+
+#close-pin-modal:hover {
+    background-color: #999;
+}
+
+/* Fade Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

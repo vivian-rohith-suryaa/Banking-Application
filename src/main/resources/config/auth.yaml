@@ -12,6 +12,10 @@ auth:
       - path: /viiva/auth/logout
         method: POST
         roles: [1,2,3,4]
+#View All Users
+      - path: /viiva/user
+        method: GET
+        roles: [2,3,4]
 #View User Details
       - path: /viiva/user/:id
         method: GET
@@ -24,6 +28,10 @@ auth:
       - path: /viiva/user/:id
         method: DELETE
         roles: [3,4]
+#View All Accounts
+      - path: /viiva/account
+        method: GET
+        roles: [2,3,4]
 #View Account Details (All Accounts)
       - path: /viiva/user/:id/accounts
         method: GET
@@ -32,12 +40,20 @@ auth:
       - path: /viiva/account/:id
         method: GET
         roles: [1,2,3,4]
+#Update User Pin
+      - path: /viiva/account/:id
+        method: PUT
+        roles: [1,2,3,4]
+#View All the transactions
+      - path: /viiva/transactions
+        method: GET
+        roles: [2,3,4]
 #View Transactions (All Accounts)
       - path: /viiva/user/:id/transactions
         method: GET
         roles: [1,2,3,4]
 #View Transactions (Individual Account)
-      - path: /viiva/account/id/transactions
+      - path: /viiva/account/:id/transactions
         method: GET
         roles: [1,2,3,4]
 #Make Payments
@@ -56,7 +72,10 @@ auth:
       - path: /viiva/branch/:id
         method: GET
         roles: [1,2,3,4]
-
+#View All Branches
+      - path: /viiva/branch
+        method: GET
+        roles: [1,2,3,4]
 #Add Branch Info
       - path: /viiva/branch
         method: POST
@@ -69,6 +88,10 @@ auth:
       - path: /viiva/branch/:id
         method: DELETE
         roles: [4]
+#View All Requests
+      - path: /viiva/request
+        method: GET
+        roles: [2,3,4]
 #View User Requests
       - path: /viiva/request/:id
         method: GET
@@ -76,6 +99,10 @@ auth:
 #Approve User Requests
       - path: /viiva/request/:id
         method: PUT
+        roles: [2,3,4]
+#View All Employee
+      - path: /viiva/employee
+        method: GET
         roles: [2,3,4]
 #View Employee
       - path: /viiva/employee/:id

@@ -28,9 +28,7 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 			throw new AuthException("Unauthorized: Session not found.");
 		}
 
-		byte sessionRole = data.getSessionRole();
 		long sessionUserId = data.getSessionUserId();
-		long sessionBranchId = data.getSessionBranchId();
 
 		switch (methodAction) {
 
@@ -40,69 +38,85 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 					throw new InputException("Invalid (Null) Input.");
 				}
 				
-				Transaction transaction = data.getTransaction();
+				System.out.println("came here");
+
+				byte sessionRole = data.getSessionRole();
+				Long sessionBranchId = data.getSessionBranchId();
+
 				TransactionDAO transactionDao = new TransactionDAO();
-				
+				Transaction transaction = data.getTransaction();
+
+				if (transaction == null) {
+					transaction = new Transaction();
+				}
+
 				List<Transaction> transactions;
-				
+
 				if (!BasicUtil.isBlank(transaction.getAccountId())) {
 					long accountId = transaction.getAccountId();
+
 					AccountDAO accountDao = new AccountDAO();
-		            Account acc = accountDao.getAccountById(accountId);
+					Account acc = accountDao.getAccountById(accountId);
 
-		            if (acc == null) {
-		                throw new DBException("Account not found.");
-		            }
-		            
-		            if (acc.getCustomerId() != sessionUserId) {
-		                throw new AuthException("Access Denied: Unauthorised to fetch the transaction.");
-		            }
-		            
-					transactions = transactionDao.getTransactionsByAccountId(accountId);
-					
-				} else if (!BasicUtil.isBlank(transaction.getCustomerId())) {
-					long customerId = transaction.getCustomerId();
-					
-					if (customerId != sessionUserId) {
-		                throw new AuthException("Access Denied: Unauthorised to fetch the transaction.");
-		            }
-					
-					transactions = transactionDao.getTransactionsByCustomerId(customerId);
+					if (acc == null) {
+						throw new DBException("Account not found.");
+					}
 
-				} else {
-					throw new InputException("Null/Empty Transaction Id.");
+					if (sessionRole < 2 && acc.getCustomerId() != sessionUserId) {
+						throw new AuthException("Access Denied: Unauthorized to fetch transactions.");
+					}
+
+					transactions = transactionDao.getTransactionsByAccountId(accountId, data.getQueryParams());
 				}
-				if (BasicUtil.isNull(transactions) || transactions.isEmpty()) {
-					throw new DBException("Transaction not found.");
+				else if (!BasicUtil.isBlank(transaction.getCustomerId())) {
+					long customerId = transaction.getCustomerId();
+
+					if (sessionRole < 2 && customerId != sessionUserId) {
+						throw new AuthException("Access Denied: Unauthorized to fetch transactions.");
+					}
+
+					transactions = transactionDao.getTransactionsByCustomerId(customerId,  data.getQueryParams());
+				}
+				else if (sessionRole >= 2) {
+					Map<String, String> filters = data.getQueryParams();
+					transactions = transactionDao.getAllTransactions(sessionBranchId, sessionRole, filters);
+				}
+				else {
+					throw new InputException("Null/Empty transaction fields.");
+				}
+
+				if (transactions == null || transactions.isEmpty()) {
+					throw new DBException("No transactions found.");
 				}
 
 				DBUtil.commit();
 
 				List<Map<String, Object>> transactionList = new ArrayList<>();
-				for (Transaction individualTransaction : transactions) {
-					Map<String, Object> transactionMap = new HashMap<>();
-					transactionMap.put("transactionId", individualTransaction.getTransactionId());
-					transactionMap.put("customerId", individualTransaction.getCustomerId());
-					transactionMap.put("accountId", individualTransaction.getAccountId());
-					transactionMap.put("transactedAccount", individualTransaction.getTransactedAccount());
-					transactionMap.put("trasnactionType", individualTransaction.getTransactionType());
-					transactionMap.put("paymentMode", individualTransaction.getPaymentMode());
-					transactionMap.put("amount", individualTransaction.getAmount());
-					transactionMap.put("closingBalance", individualTransaction.getClosingBalance());
-					transactionMap.put("transactionTime", individualTransaction.getTransactionTime());
-					transactionList.add(transactionMap);
+				for (Transaction t : transactions) {
+					Map<String, Object> map = new HashMap<>();
+					map.put("transactionId", t.getTransactionId());
+					map.put("customerId", t.getCustomerId());
+					map.put("accountId", t.getAccountId());
+					map.put("transactedAccount", t.getTransactedAccount());
+					map.put("transactionType", t.getTransactionType());
+					map.put("paymentMode", t.getPaymentMode());
+					map.put("amount", t.getAmount());
+					map.put("closingBalance", t.getClosingBalance());
+					map.put("transactionTime", t.getTransactionTime());
+					transactionList.add(map);
 				}
 
-				Map<String, Object> responseData = new HashMap<String, Object>();
-				responseData.put("message", "Transactions fetched successfully.");
-				responseData.put("transactions", transactionList);
-				return responseData;
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Transactions fetched successfully.");
+				response.put("transactions", transactionList);
+				return response;
 
 			} catch (Exception e) {
 				DBUtil.rollback();
 				throw e;
 			}
 		}
+
 
 		case "POST": {
 			try {
@@ -122,35 +136,38 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				TransactionDAO transactionDao = new TransactionDAO();
 
 				long sourceId = inputAccount.getAccountId();
-				long targetId = transaction.getTransactedAccount();
+				Long targetId = transaction.getTransactedAccount();
 				
-				if (sourceId != sessionUserId) {
-				    throw new AuthException("Access Denied: Unauthorised to fetch the transaction.");
-				}
-
-				Account source;
-				Account target = null;
-
-//				if (BasicUtil.isNull(targetId) && sourceId > targetId) {
-//					target = accountDao.getAccountById(targetId);
-//					source = accountDao.getAccountById(sourceId);
-//				} else {
-				
-				source = accountDao.getAccountById(sourceId);
-				if (!BasicUtil.isBlank(targetId)) {
-				    target = accountDao.getAccountById(targetId);
-				} else {
-					source = accountDao.getAccountById(sourceId);
-					if (!BasicUtil.isNull(targetId)) {
-						target = accountDao.getAccountById(targetId);
-					}
-				}
-
+				Account source = accountDao.getAccountById(sourceId);
 				if (source == null) {
 					throw new DBException("Source account not found.");
 				}
+				long customerId = source.getCustomerId();
+				
+				if (customerId != sessionUserId) {
+				    throw new AuthException("Access Denied: Unauthorised to perform the transaction.");
+				}
+				
+				if(sourceId == targetId) {
+					throw new InputException("Invalid Transaction Operation.");
+				}
+				
+				Account target = null;
+				
+				if(!BasicUtil.isNull(targetId)) {
+					if(sourceId > targetId) {
+						source = accountDao.getAccountById(sourceId);
+					    target = accountDao.getAccountById(targetId);
+					} else {
+						target = accountDao.getAccountById(targetId);
+						source = accountDao.getAccountById(sourceId);
+					}
+				}
 
 				// Validate PIN
+				System.out.println(inputAccount.getPin());
+				System.out.println(source.getPin());
+				
 				if (!BasicUtil.checkPassword(inputAccount.getPin(), source.getPin())) {
 					throw new InputException("Incorrect PIN.");
 				}
@@ -169,18 +186,22 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 						throw new InputException(mode + " requires a transacted account.");
 					}
 					target = accountDao.getAccountById(transaction.getTransactedAccount());
-					if (BasicUtil.isNull(target) || !target.getCustomerId().equals(source.getCustomerId())) {
+					if (BasicUtil.isNull(target)) {
+						throw new InputException("Target account not found.");
+					}
+					if(!target.getCustomerId().equals(source.getCustomerId())) {
 						throw new InputException("Self-transfer must be between accounts of the same customer.");
 					}
 				}
 
 				if (mode == PaymentMode.BANK_TRANSFER) {
-					if (BasicUtil.isBlank(transaction.getTransactedAccount())) {
-						throw new InputException(mode + " requires a transacted account.");
-					}
 					if (BasicUtil.isNull(target)) {
 						throw new InputException("Transacted Account not found.");
 					}
+					if (BasicUtil.isBlank(transaction.getTransactedAccount())) {
+						throw new InputException(mode + " requires a transacted account.");
+					}
+					
 
 				}
 
@@ -192,10 +213,6 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 						break;
 
 					case SELF_TRANSFER:
-
-						if (BasicUtil.isNull(target)) {
-							throw new InputException("Target account not found.");
-						}
 
 						if (source.getBalance() < transactedAmount) {
 							throw new InputException("Insufficient balance.");
@@ -255,7 +272,7 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				}
 
 				DBUtil.commit();
-
+				result.put("message", "Transaction Successful.");
 				return result;
 			} catch (Exception e) {
 				DBUtil.rollback();

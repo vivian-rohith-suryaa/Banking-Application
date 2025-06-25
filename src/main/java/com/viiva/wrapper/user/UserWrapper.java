@@ -10,6 +10,7 @@ public class UserWrapper implements SessionAware{
 	private Customer customer;
 	private User user;
 	private Map<String, Object> sessionAttributes;
+	private Map<String, String> queryParams;
 
 	@Override
 	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
@@ -45,6 +46,14 @@ public class UserWrapper implements SessionAware{
 	        String userId = params.get("user").toString();
 	        this.user.setUserId(Long.parseLong(userId));
 	    }
+	}
+
+	public Map<String, String> getQueryParams() {
+		return queryParams;
+	}
+
+	public void setQueryParams(Map<String, String> queryParams) {
+		this.queryParams = queryParams;
 	}
 
 

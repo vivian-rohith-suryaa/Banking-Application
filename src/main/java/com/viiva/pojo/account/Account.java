@@ -93,5 +93,14 @@ public class Account {
 		this.status = status;
 	}
 	
+	@Override
+	public String toString() {
+	    return "Account{" +
+	            "accountId=" + accountId +
+	            ", pin=" + pin +
+	            '}';
+	}
+
+	
 
 }

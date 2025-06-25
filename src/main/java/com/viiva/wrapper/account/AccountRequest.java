@@ -11,6 +11,15 @@ public class AccountRequest implements SessionAware{
 	private Account account;
 	private Request request;
 	private Map<String, Object> sessionAttributes;
+	private Map<String, String> queryParams;
+
+	public Map<String, String> getQueryParams() {
+		return queryParams;
+	}
+
+	public void setQueryParams(Map<String, String> queryParams) {
+		this.queryParams = queryParams;
+	}
 
 	@Override
 	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
@@ -54,5 +63,16 @@ public class AccountRequest implements SessionAware{
 			this.account.setCustomerId(Long.parseLong(customerId));
 		}
 	}
+	
+	@Override
+	public String toString() {
+	    return "AccountRequest{" +
+	            "account=" + account.toString() +
+	            ", request=" + request +
+	            ", sessionAttributes=" + (sessionAttributes != null ? sessionAttributes.keySet() : null) +
+	            ", queryParams=" + queryParams +
+	            '}';
+	}
+
 
 }

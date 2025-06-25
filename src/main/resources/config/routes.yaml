@@ -14,6 +14,11 @@ routes:
       method: POST
       handler: com.viiva.handler.session.SessionHandler
 
+    #View all users
+    - path: /viiva/user
+      method: GET
+      handler: com.viiva.handler.user.UserHandler
+
     #View User Details  
     - path: /viiva/user/:id
       method: GET
@@ -29,6 +34,11 @@ routes:
       method: DELETE
       handler: com.viiva.handler.user.UserHandler
 
+    #View All Accounts
+    - path: /viiva/account
+      method: GET
+      handler: com.viiva.handler.account.AccountHandler
+
     #View Account Details (All Accounts)
     - path: /viiva/user/:id/accounts
       method: GET
@@ -43,6 +53,11 @@ routes:
     - path: /viiva/account/:id
       method: PUT
       handler: com.viiva.handler.account.AccountHandler
+
+    #View All Transactions
+    - path: /viiva/transactions
+      method: GET
+      handler: com.viiva.handler.transaction.TransactionHandler
 
     #View Transactions (All Accounts)
     - path: /viiva/user/:id/transactions
@@ -69,6 +84,11 @@ routes:
       method: DELETE
       handler: com.viiva.handler.account.AccountHandler
 
+    #View All Branches
+    - path: /viiva/branch
+      method: GET
+      handler: com.viiva.handler.branch.BranchHandler
+
     #View Branch Info
     - path: /viiva/branch/:id
       method: GET
@@ -89,6 +109,11 @@ routes:
       method: DELETE
       handler: com.viiva.handler.branch.BranchHandler
 
+    #View All Requests
+    - path: /viiva/request
+      method: GET
+      handler: com.viiva.handler.request.RequestHandler
+
     #View User Requests
     - path: /viiva/request/:id
       method: GET
@@ -98,6 +123,11 @@ routes:
     - path: /viiva/request/:id
       method: PUT
       handler: com.viiva.handler.request.RequestHandler
+
+    #View All employees
+    - path: /viiva/employee
+      method: GET
+      handler: com.viiva.handler.employee.EmployeeHandler
 
     #View Employee
     - path: /viiva/employee/:id

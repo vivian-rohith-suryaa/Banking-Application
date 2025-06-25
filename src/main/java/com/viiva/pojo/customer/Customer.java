@@ -1,6 +1,6 @@
 package com.viiva.pojo.customer;
 
-public class Customer {
+public class Customer{
 
 	private Long customerId;
 	private String dob;

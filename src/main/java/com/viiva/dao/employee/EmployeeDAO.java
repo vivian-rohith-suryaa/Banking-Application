@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import com.viiva.exceptions.DBException;
 import com.viiva.pojo.employee.Employee;
+import com.viiva.pojo.user.Gender;
+import com.viiva.pojo.user.UserStatus;
 import com.viiva.pojo.user.UserType;
 import com.viiva.util.DBUtil;
 
@@ -92,31 +94,109 @@ public class EmployeeDAO {
 		}
 	}
 
-	public List<Employee> getBranchEmployees(long branchId) {
-		String query = "SELECT e.employee_id,u.name,u.email,u.phone,u.type,e.branch_id FROM employee e JOIN user u on e.employee_id = u.user_id WHERE e.branch_id =?";
-		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+	public List<Employee> getAllEmployees(byte role, Long branchId, Map<String, String> filters) throws Exception {
+		
+		int page = 1;
+	    int limit = 10;
 
-			pstmt.setLong(1, branchId);
+	    if (filters != null) {
+	        if (filters.containsKey("page")) {
+	            try {
+	                page = Integer.parseInt(filters.get("page"));
+	            } catch (NumberFormatException e) {
+	                page = 1;
+	            }
+	            filters.remove("page");
+	        }
+	        if (filters.containsKey("limit")) {
+	            try {
+	                limit = Integer.parseInt(filters.get("limit"));
+	            } catch (NumberFormatException e) {
+	                limit = 10;
+	            }
+	            filters.remove("limit");
+	        }
+	    }
 
-			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-				List<Employee> employeeList = new ArrayList<>();
+	    int offset = (page - 1) * limit;
+	    
+	    List<Employee> employees = new ArrayList<>();
+
+	    StringBuilder query = new StringBuilder(
+	        "SELECT e.employee_id, u.name, u.email, u.phone, u.gender, u.type, u.status, u.modified_by, u.modified_time, e.branch_id " +
+	        "FROM employee e INNER JOIN user u ON e.employee_id = u.user_id"
+	    );
+
+	    if (role == 2 || role == 3) {
+	        query.append(" WHERE e.branch_id = ?");
+	    } else {
+	        query.append(" WHERE 1=1");
+	    }
+
+	    if (filters != null) {
+	        if (filters.containsKey("type")) {
+	            query.append(" AND u.type = ?");
+	        }
+	        if (filters.containsKey("status")) {
+	            query.append(" AND u.status = ?");
+	        }
+	        if (filters.containsKey("branchId") && role == 4) {
+	            query.append(" AND e.branch_id = ?");
+	        }
+	        if (filters.containsKey("employeeId")) {
+	            query.append(" AND e.employee_id = ?");
+	        }
+	    }
+	    query.append(" ORDER BY e.employee_id DESC LIMIT ? OFFSET ?");
+
+	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
+	        int index = 1;
+
+	        if (role == 2 || role == 3) {
+	            pstmt.setLong(index++, branchId);
+	        }
+
+	        if (filters != null) {
+	            if (filters.containsKey("type")) {
+	                pstmt.setByte(index++, Byte.parseByte(filters.get("type")));
+	            }
+	            if (filters.containsKey("status")) {
+	                pstmt.setByte(index++, Byte.parseByte(filters.get("status")));
+	            }
+	            if (filters.containsKey("branchId") && role == 4) {
+	                pstmt.setLong(index++, Long.parseLong(filters.get("branchId")));
+	            }
+	            if (filters.containsKey("employeeId")) {
+	                pstmt.setLong(index++, Long.parseLong(filters.get("employeeId")));
+	            }
+	        }
+	        
+	        pstmt.setInt(index++, limit);
+	        pstmt.setInt(index, offset);
+
+	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
 	            while (rs.next()) {
 	                Employee emp = new Employee();
 	                emp.setEmployeeId(rs.getLong("employee_id"));
 	                emp.setName(rs.getString("name"));
 	                emp.setEmail(rs.getString("email"));
 	                emp.setPhone(rs.getString("phone"));
+	                emp.setGender(Gender.fromString(rs.getString("gender")));
 	                emp.setType(UserType.fromCode(rs.getByte("type")));
+	                emp.setStatus(UserStatus.fromCode(rs.getByte("status")));
+	                emp.setModifiedBy(rs.getLong("modified_by"));
+	                emp.setModifiedTime(rs.getLong("modified_time"));
 	                emp.setBranchId(rs.getLong("branch_id"));
-	                employeeList.add(emp);
+	                employees.add(emp);
 	            }
-	            return employeeList;
-				
-			}
-		}  catch (SQLException e) {
+	        }
+
+	        return employees;
+	    } catch (SQLException e) {
 	        e.printStackTrace();
-	        throw new DBException("Error while fetching employees by branch.", e);
+	        throw new DBException("Error occurred while fetching employees.", e);
 	    }
 	}
+
 
 }

@@ -9,6 +9,15 @@ public class Employee extends User implements SessionAware{
 	private Long employeeId;
 	private Long branchId;
 	private Map<String, Object> sessionAttributes;
+	private Map<String, String> queryParams;
+
+	public Map<String, String> getQueryParams() {
+		return queryParams;
+	}
+
+	public void setQueryParams(Map<String, String> queryParams) {
+		this.queryParams = queryParams;
+	}
 
 	@Override
 	public void setSessionAttributes(Map<String, Object> sessionAttributes) {
