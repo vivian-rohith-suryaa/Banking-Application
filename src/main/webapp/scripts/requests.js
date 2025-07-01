@@ -1,10 +1,8 @@
-export function initEmployeeModule(contextPath, userId, role, userBranchId) {
-	if (role < 2) return; // Only managers and superadmins
+export function initRequestsModule(contextPath, userId, role, branchId) {
+	if (role < 2) return;
 
 	const headers = { "Content-Type": "application/json" };
-	const endpoint = `${contextPath}/viiva/employee`;
-	const filters = ["employeeId", "branchId", "type"];
-	const columns = ["employeeId", "branchId", "name", "email", "phone", "type"];
+	const endpoint = `${contextPath}/viiva/request`;
 
 	const filterType = document.getElementById("filter-type");
 	let filterValueInput = document.getElementById("filter-value");
@@ -24,15 +22,13 @@ export function initEmployeeModule(contextPath, userId, role, userBranchId) {
 	const form = document.getElementById("entity-form");
 	const closeModal = document.getElementById("close-modal");
 
-	const addBtn = document.getElementById("open-add-modal");
-	const addModal = document.getElementById("add-employee-modal");
-	const addForm = document.getElementById("add-employee-form");
-	const closeAddModal = document.getElementById("close-employee-modal");
-
 	let page = 1;
 	const limit = 10;
 
-	// Setup filters (uppercase display names)
+	const filters = ["branchId", "status", "customerId"];
+	const columns = ["requestId", "branchId", "customerId", "accountType", "status", "balance", "remarks"];
+
+	// Initialize filter dropdown
 	filterType.innerHTML = filters
 			.map(f => `<option value="${f}">${f.replace(/([A-Z])/g, " $1").toUpperCase()}</option>`)
 			.join("");
@@ -45,32 +41,22 @@ export function initEmployeeModule(contextPath, userId, role, userBranchId) {
 
 		let newInput;
 
-		if (key === "type") {
+		if (key === "status") {
 			newInput = document.createElement("select");
-			newInput.id = "filter-value";
-			newInput.className = "filter-value";
-
-			const options = [
-				{ label: "--Select Role--", value: "" },
-				{ label: "Employee", value: "2" },
-				{ label: "Manager", value: "3" },
-				{ label: "Superadmin", value: "4" }
-			];
-
-			options.forEach(({ label, value }) => {
+			["", "PENDING", "APPROVED", "REJECTED"].forEach(opt => {
 				const option = document.createElement("option");
-				option.value = value;
-				option.textContent = label;
+				option.value = opt;
+				option.textContent = opt || "--Select Status--";
 				newInput.appendChild(option);
 			});
 		} else {
 			newInput = document.createElement("input");
 			newInput.type = "text";
 			newInput.placeholder = "Enter value";
-			newInput.id = "filter-value";
-			newInput.className = "filter-value";
 		}
 
+		newInput.id = "filter-value";
+		newInput.className = "filter-value";
 		filterValueInput = newInput;
 		filterContainer.appendChild(newInput);
 	});
@@ -83,18 +69,18 @@ export function initEmployeeModule(contextPath, userId, role, userBranchId) {
 		return `${endpoint}?${params.toString()}`;
 	}
 
-	function loadEmployees() {
+	function loadRequests() {
 		fetch(buildURL(), { method: "GET", headers })
 			.then(res => res.json())
 			.then(data => {
-				const list = Array.isArray(data.data.employees) ? data.data.employees : [];
+				const list = Array.isArray(data.data?.requests) ? data.data.requests : [];
 				renderTable(list);
 				pageInfo.textContent = `Page ${page}`;
 				prevBtn.disabled = page === 1;
 				nextBtn.disabled = list.length < limit;
 			})
 			.catch(() => {
-				tbody.innerHTML = `<tr><td colspan="10">Failed to load employees.</td></tr>`;
+				tbody.innerHTML = `<tr><td colspan="10">Failed to load data</td></tr>`;
 			});
 	}
 
@@ -105,65 +91,72 @@ export function initEmployeeModule(contextPath, userId, role, userBranchId) {
 		const thead = document.createElement("tr");
 		columns.forEach(col => {
 			const th = document.createElement("th");
-			th.textContent = col.replace(/([A-Z])/g, " $1").replace(/^./, ch => ch.toUpperCase());
+			th.textContent = col;
 			thead.appendChild(th);
 		});
 		thead.appendChild(document.createElement("th")).textContent = "Actions";
 		table.tHead.appendChild(thead);
 
-		list.forEach(emp => {
+		list.forEach(item => {
 			const tr = document.createElement("tr");
 
 			columns.forEach(col => {
 				const td = document.createElement("td");
-				td.textContent = emp[col] ?? "-";
+				td.textContent = item[col] ?? "-";
 				tr.appendChild(td);
 			});
 
 			const actionTd = document.createElement("td");
-			const canEdit = role === 4 || (role === 3 && emp.branchId == userBranchId);
-
-			if (canEdit) {
-				const icon = document.createElement("img");
-				icon.src = `${contextPath}/icons/edit.svg`;
-				icon.alt = "Edit";
-				icon.style.cursor = "pointer";
-				icon.style.width = "18px";
-				icon.classList.add("edit-icon");
-				icon.addEventListener("click", e => {
+			if (item.status === "PENDING") {
+				const editIcon = document.createElement("img");
+				editIcon.src = `${contextPath}/icons/edit.svg`;
+				editIcon.alt = "Edit";
+				editIcon.classList.add("edit-icon");
+				editIcon.style.cursor = "pointer";
+				editIcon.style.width = "18px";
+				editIcon.addEventListener("click", e => {
 					e.stopPropagation();
-					openEditModal(emp);
+					openEditModal(item);
 				});
-				actionTd.appendChild(icon);
+				actionTd.appendChild(editIcon);
 			} else {
 				actionTd.textContent = "-";
 			}
-
 			tr.appendChild(actionTd);
+
 			tbody.appendChild(tr);
 		});
 	}
 
-	function openEditModal(emp) {
+	function openEditModal(data) {
 		formModal.classList.remove("hidden");
-		modalTitle.textContent = "Edit Employee";
-
+		modalTitle.textContent = "Update Request";
 		form.innerHTML = `
+			<label>Request ID</label>
+			<input type="text" name="requestId" value="${data.requestId}" readonly />
+			<label>Customer ID</label>
+			<input type="text" name="customerId" value="${data.customerId}" readonly />
 			<label>Branch ID</label>
-			<input type="number" name="branchId" value="${emp.branchId}" required />
-			<label>Role</label>
-			<select name="type" required>
-				<option value="2" ${emp.type === "EMPLOYEE" ? "selected" : ""}>Employee</option>
-				<option value="3" ${emp.type === "MANAGER" ? "selected" : ""}>Manager</option>
+			<input type="text" name="branchId" value="${data.branchId}" readonly />
+			<label>Account Type</label>
+			<input type="text" name="accountType" value="${data.accountType}" readonly />
+			<label>Balance</label>
+			<input type="number" name="balance" value="${data.balance}" readonly />
+			<label>Status</label>
+			<select name="status" required>
+				<option value="PENDING" ${data.status === "PENDING" ? "selected" : ""}>Pending</option>
+				<option value="APPROVED" ${data.status === "APPROVED" ? "selected" : ""}>Approved</option>
+				<option value="REJECTED" ${data.status === "REJECTED" ? "selected" : ""}>Rejected</option>
 			</select>
-			<input type="hidden" name="employeeId" value="${emp.employeeId}" />
+			<label>Remarks</label>
+			<input type="text" name="remarks" value="${data.remarks || ""}" />
 		`;
 	}
 
 	form.addEventListener("submit", e => {
 		e.preventDefault();
 		const payload = Object.fromEntries(new FormData(form));
-		const id = payload.employeeId;
+		const id = payload.requestId;
 
 		fetch(`${endpoint}/${id}`, {
 			method: "PUT",
@@ -173,55 +166,35 @@ export function initEmployeeModule(contextPath, userId, role, userBranchId) {
 			.then(res => res.json())
 			.then(() => {
 				formModal.classList.add("hidden");
-				loadEmployees();
+				loadRequests();
 			});
 	});
 
-	addForm.addEventListener("submit", e => {
-		e.preventDefault();
-		const payload = Object.fromEntries(new FormData(addForm));
-		payload.type = "2"; // force EMPLOYEE (value 2) on add
-
-		fetch(endpoint, {
-			method: "POST",
-			headers,
-			body: JSON.stringify(payload)
-		})
-			.then(res => res.json())
-			.then(() => {
-				addModal.classList.add("hidden");
-				loadEmployees();
-			});
-	});
-
-	// Event listeners
 	closeModal.addEventListener("click", () => formModal.classList.add("hidden"));
-	closeAddModal.addEventListener("click", () => addModal.classList.add("hidden"));
-	addBtn.addEventListener("click", () => addModal.classList.remove("hidden"));
 
 	filterBtn.addEventListener("click", () => {
 		page = 1;
-		loadEmployees();
+		loadRequests();
 	});
 
 	clearBtn.addEventListener("click", () => {
 		filterValueInput.value = "";
 		page = 1;
-		loadEmployees();
+		loadRequests();
 	});
 
 	prevBtn.addEventListener("click", () => {
 		if (page > 1) {
 			page--;
-			loadEmployees();
+			loadRequests();
 		}
 	});
 
 	nextBtn.addEventListener("click", () => {
 		page++;
-		loadEmployees();
+		loadRequests();
 	});
 
-	// Initial Load
-	loadEmployees();
+	// Initial load
+	loadRequests();
 }

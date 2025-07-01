@@ -14,9 +14,6 @@
     </div>
 
     <div id="view-section" class="account-section active">
-        <select id="account-select">
-            <option value="all">Select All</option>
-        </select>
         <div id="account-result" class="account-display"></div>
     </div>
 </div>
@@ -41,7 +38,7 @@
             </label>
 
             <label>Branch ID:
-                <input type="text" name="branchId" required
+                <input type="text" name="branchId" required maxlength="12"
                     oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                     onkeypress="if(['-','e','E'].includes(event.key)) event.preventDefault();">
             </label>

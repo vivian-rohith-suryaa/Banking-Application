@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="<%=request.getContextPath()%>/styles/statement.css">
-
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="javax.servlet.http.HttpSession" %>
 <%
@@ -29,7 +27,8 @@
                     <th>Amount</th>
                     <th>Type</th>
                     <th>Mode</th>
-                    <th>To Account</th>
+                    <th>Transacted Account</th>
+                    <th>Description</th>
                     <th>Balance</th>
                     <th>Time</th>
                 </tr>

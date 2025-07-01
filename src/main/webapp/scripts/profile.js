@@ -1,164 +1,154 @@
 export function initProfilePage(contextPath, userId) {
-	const loading = document.getElementById("loading");
-	const form = document.getElementById("profile-form");
-	const profileContainer = document.querySelector(".profile-container");
-	const editableInputs = form.querySelectorAll("input:not(.readonly)");
-	const updateBtn = document.getElementById("update-btn");
+	console.log("Initializing profile for user:", userId);
+
+	const nameField = document.getElementById("profile-name");
+	const idField = document.getElementById("profile-id");
+	const sidebar = document.getElementById("profile-sidebar");
+
+	const fields = {
+		email: document.getElementById("profile-email"),
+		phone: document.getElementById("profile-phone"),
+		dob: document.getElementById("profile-dob"),
+		gender: document.getElementById("profile-gender"),
+		address: document.getElementById("profile-address"),
+		pan: document.getElementById("profile-pan"),
+		aadhar: document.getElementById("profile-aadhar"),
+		name: document.getElementById("profile-name")
+	};
+
+	const saveBtn = document.getElementById("save-profile-btn");
+	const updateSection = document.getElementById("profile-update-section");
+
+	let originalData = {};
 	let editMode = false;
 
 	if (!userId || userId === -1) {
-		loading.textContent = "Session expired or invalid.";
+		nameField.textContent = "Invalid session";
 		return;
 	}
 
-	// Fetch user profile data
+	// Load profile data
 	fetch(`${contextPath}/viiva/user/${userId}`, {
-		method: 'GET',
-		headers: { 'Content-Type': 'application/json' }
+		method: "GET",
+		headers: { "Content-Type": "application/json" }
 	})
+		.then(res => res.json())
 		.then(res => {
-			if (!res.ok) throw new Error("Failed to fetch user profile");
-			return res.json();
-		})
-		.then(response => {
-			const data = response.data;
-			loading.style.display = "none";
-			form.style.display = "grid";
+			const data = res.data || {};
+			nameField.textContent = data.name || "Unnamed";
+			idField.textContent = `ID: ${data.userId || userId}`;
 
-			form.userId.value = data.userId || '';
-			form.name.value = data.name || '';
-			form.email.value = data.email || '';
-			form.phone.value = data.phone || '';
-			form.gender.value = data.gender || '';
-			form.status.value = data.status || '';
-
-			form.address.value = data.address || '';
-			form.dob.value = data.dob || '';
-			form.aadhar.value = data.aadhar || '';
-			form.pan.value = data.pan || '';
+			Object.entries(fields).forEach(([key, el]) => {
+				originalData[key] = data[key] || "";
+				el.textContent = originalData[key];
+			});
 		})
 		.catch(err => {
-			loading.textContent = "Failed to load profile data.";
-			console.error(err);
+			console.error("Failed to load profile:", err);
+			nameField.textContent = "Failed to load";
 		});
 
-	// Enable editing
-	document.getElementById("edit-btn")?.addEventListener("click", (e) => {
-		e.stopPropagation(); // Prevent immediate outside cancel
-		editableInputs.forEach(input => {
-			input.readOnly = false;
-			input.classList.add("editable");
-		});
-
-		// Make DOB and gender editable
-		form.dob.readOnly = false;
-		form.gender.readOnly = false;
-
-		updateBtn.classList.remove("edit-hidden");
+	// Edit button handler
+	document.getElementById("edit-profile-btn")?.addEventListener("click", () => {
 		editMode = true;
+
+		Object.entries(fields).forEach(([key, el]) => {
+			if (!["pan", "aadhar", "name"].includes(key)) {
+				el.contentEditable = "true";
+				el.classList.add("editable");
+			}
+		});
+
+		updateSection?.classList.remove("hidden");
 	});
 
-	// Update profile
-	updateBtn?.addEventListener("click", () => {
-		if (!validateProfileForm()) return;
-
+	// Save button handler
+	saveBtn?.addEventListener("click", () => {
 		const payload = {
 			user: {
-				name: form.name.value,
-				email: form.email.value,
-				phone: form.phone.value,
-				gender: form.gender.value
+				name: originalData.name,
+				email: fields.email.textContent.trim(),
+				phone: fields.phone.textContent.trim(),
+				gender: fields.gender.textContent.trim().toUpperCase()
 			},
 			customer: {
-				address: form.address.value,
-				dob: form.dob.value,
-				aadhar: form.aadhar.value,
-				pan: form.pan.value
+				aadhar: originalData.aadhar,
+				pan: originalData.pan,
+				address: fields.address.textContent.trim(),
+				dob: fields.dob.textContent.trim()
 			}
 		};
 
+		if (!validateProfilePayload(payload)) return;
+
 		fetch(`${contextPath}/viiva/user/${userId}`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(payload)
 		})
-			.then(res => {
-				if (!res.ok) throw new Error("Failed to update profile");
-				return res.json();
-			})
-			.then(response => {
-				alert(response.message || "Profile updated successfully.");
+			.then(res => res.json())
+			.then(resp => {
+				alert(resp.message || "Profile updated successfully.");
 				location.reload();
 			})
 			.catch(err => {
+				console.error("Update failed", err);
 				alert("Failed to update profile.");
-				console.error(err);
 			});
 	});
 
-	// Cancel editing if click outside
-	document.addEventListener("click", (e) => {
-		if (
-			editMode &&
-			!profileContainer.contains(e.target)
-		) {
-			editableInputs.forEach(input => {
-				input.readOnly = true;
-				input.classList.remove("editable");
-			});
-			updateBtn.classList.add("edit-hidden");
-			editMode = false;
+	// Logout handler
+	document.getElementById("logout-btn")?.addEventListener("click", () => {
+		fetch(`${contextPath}/logout`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" }
+		})
+			.then(() => window.location.href = `${contextPath}/pages/signin.jsp`)
+			.catch(err => console.error("Logout failed", err));
+	});
+
+	// Close sidebar on outside click
+	document.addEventListener("click", e => {
+		if (!sidebar || !sidebar.classList.contains("open")) return;
+		if (!sidebar.contains(e.target) && e.target.id !== "profile-icon") {
+			sidebar.classList.remove("open");
+
+			if (editMode) {
+				Object.entries(fields).forEach(([key, el]) => {
+					el.contentEditable = "false";
+					el.classList.remove("editable");
+					el.textContent = originalData[key];
+				});
+				editMode = false;
+				updateSection?.classList.add("hidden");
+			}
 		}
 	});
 }
 
+// Validation
+function validateProfilePayload({ user, customer }) {
+	const messages = [];
 
-function validateProfileForm() {
-	const form = document.getElementById("profile-form");
+	if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(user.email))
+		messages.push("Invalid email address.");
 
-	const name = form.name.value.trim();
-	const email = form.email.value.trim();
-	const phone = form.phone.value.trim();
-	const dob = form.dob.value?.trim();
-	const address = form.address.value.trim();
-	const gender = form.gender.value.trim().toUpperCase();
-
-	let valid = true;
-	let messages = [];
-
-	const nameRegex = /^([A-Za-z]{1,})( [A-Za-z]{1,})*$/;
-	const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-	const phoneRegex = /^\d{10}$/;
-	const addressRegex = /^[a-zA-Z0-9\s,.\-/#()]{5,100}$/;
-
-	if (!nameRegex.test(name)) {
-		messages.push("Invalid Name.");
-		valid = false;
-	}
-	if (!emailRegex.test(email)) {
-		messages.push("Invalid Email.");
-		valid = false;
-	}
-	if (!phoneRegex.test(phone)) {
+	if (!/^\d{10}$/.test(user.phone))
 		messages.push("Phone must be 10 digits.");
-		valid = false;
-	}
-	if (!addressRegex.test(address)) {
-		messages.push("Invalid Address.");
-		valid = false;
-	}
-	if (!dob || isNaN(new Date(dob))) {
-		messages.push("Date of Birth is required and must be valid.");
-		valid = false;
-	}
-	if (!["MALE", "FEMALE", "OTHERS"].includes(gender)) {
-		messages.push("Gender must be MALE, FEMALE, or OTHERS.");
-		valid = false;
+
+	if (!["MALE", "FEMALE", "OTHER", "OTHERS"].includes(user.gender))
+		messages.push("Gender must be MALE, FEMALE, or OTHER(S).");
+
+	if (!customer.dob || isNaN(new Date(customer.dob)))
+		messages.push("Invalid or empty DOB.");
+
+	if (!/^[a-zA-Z0-9\s,.\-/#()]{5,100}$/.test(customer.address))
+		messages.push("Invalid address format.");
+
+	if (messages.length > 0) {
+		alert("Invalid Input(s) found:\n\n" + messages.join("\n"));
+		return false;
 	}
 
-	if (!valid) {
-		alert(messages.join("\n"));
-	}
-
-	return valid;
+	return true;
 }

@@ -1,6 +1,6 @@
 @charset "UTF-8";
 
-:root {
+:root {	
     --primary: #004d99;
     --accent: #2ec27e;
     --background: #f5f7fa;
@@ -12,15 +12,11 @@
     --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Base Layout */
 body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--background);
-    font-family: var(--font);
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
+	font-family: var(--font);
+	background-color: var(--background);
+	margin: 0;
+	padding: 0;
 }
 
 .payment-wrapper {
@@ -28,6 +24,7 @@ body {
     justify-content: center;
     width: 100%;
     padding: 2rem 1rem;
+    height: auto;
 }
 
 /* Payment Card */
@@ -37,7 +34,7 @@ body {
     border-radius: var(--border-radius);
     padding: 2rem 2rem;
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
@@ -50,7 +47,7 @@ body {
     color: var(--primary);
     font-size: 24px;
     font-weight: 600;
-    text-align: center;
+    text-align: left;
     border-bottom: 1px solid #e1e8f0;
     padding-bottom: 0.5rem;
 }
@@ -108,12 +105,42 @@ body {
     transform: translateY(-1px);
 }
 
-/* Optional Field Group */
-.conditional.hidden {
-    display: none;
+#bank-transfer-options {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 8px;
 }
 
-/* Message / Result */
+#transfer-type {
+	display: flex;
+	gap: 20px;
+}
+
+#transfer-type input {
+	margin: 0px;
+}
+
+#transfer-type label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 500;
+	font-size: 0.95em;
+	cursor: pointer;
+	flex-direction: row;
+}
+
+.transfer-label {
+	font-weight: 500;
+	font-size: 0.95em;
+	white-space: nowrap;
+}
+
+.hidden {
+	display: none !important;
+}
+	
 .message-area {
     margin-top: -1rem;
     padding: 0.8rem 1rem;

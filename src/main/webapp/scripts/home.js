@@ -50,18 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
 						});
 				}
 
-				if (page === "profile.jsp") {
-					import(`${contextPath}/scripts/profile.js`)
-						.then(mod => {
-							if (typeof mod.initProfilePage === "function") {
-								mod.initProfilePage(contextPath, sessionUserId);
-							}
-						})
-						.catch(err => {
-							console.error("Failed to load profile module", err);
-						});
-				}
-
 				if (page === "account.jsp") {
 					import(`${contextPath}/scripts/account.js`)
 						.then(mod => {
@@ -70,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							}
 						})
 						.catch(err => {
-							console.error("Failed to load profile module", err);
+							console.error("Failed to load account module", err);
 						});
 				}
 				if (page === "payment.jsp") {
@@ -81,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							}
 						})
 						.catch(err => {
-							console.error("Failed to load profile module", err);
+							console.error("Failed to load payment module", err);
 						});
 				}
 				if (page === "statement.jsp") {
@@ -92,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							}
 						})
 						.catch(err => {
-							console.error("Failed to load profile module", err);
+							console.error("Failed to load statement module", err);
 						});
 				}
 				if (page === "branch.jsp") {
@@ -103,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							}
 						})
 						.catch(err => {
-							console.error("Failed to load profile module", err);
+							console.error("Failed to load branch module", err);
 						});
 				}
 				if (page === "employee.jsp") {
@@ -114,9 +102,59 @@ document.addEventListener("DOMContentLoaded", () => {
 							}
 						})
 						.catch(err => {
-							console.error("Failed to load profile module", err);
+							console.error("Failed to load employee module", err);
 						});
 				}
+				
+				if (page === "users.jsp") {
+					import(`${contextPath}/scripts/users.js`)
+						.then(mod => {
+							if (typeof mod.initUsersModule === "function") {
+								mod.initUsersModule(contextPath, sessionUserId, sessionRole, sessionBranchId);
+							}
+						})
+						.catch(err => {
+							console.error("Failed to load users module", err);
+						});
+				}
+				
+				if (page === "allaccounts.jsp") {
+									import(`${contextPath}/scripts/allaccounts.js`)
+										.then(mod => {
+											if (typeof mod.initAccountsModule === "function") {
+												mod.initAccountsModule(contextPath, sessionUserId, sessionRole, sessionBranchId);
+											}
+										})
+										.catch(err => {
+											console.error("Failed to load accounts module", err);
+										});
+								}
+								
+								if (page === "transaction.jsp") {
+													import(`${contextPath}/scripts/transaction.js`)
+														.then(mod => {
+															if (typeof mod.initTransactionModule === "function") {
+																mod.initTransactionModule(contextPath, sessionUserId, sessionRole, sessionBranchId);
+															}
+														})
+														.catch(err => {
+															console.error("Failed to load transaction module", err);
+														});
+												}
+												
+												
+												if (page === "requests.jsp") {
+																	import(`${contextPath}/scripts/requests.js`)
+																		.then(mod => {
+																			if (typeof mod.initRequestsModule === "function") {
+																				mod.initRequestsModule(contextPath, sessionUserId, sessionRole, sessionBranchId);
+																			}
+																		})
+																		.catch(err => {
+																			console.error("Failed to load requests module", err);
+																		});
+																}
+				
 			})
 			.catch(err => {
 				mainContent.innerHTML = "<p>Unable to load content.</p>";

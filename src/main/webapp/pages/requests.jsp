@@ -8,22 +8,19 @@
     long branchId = (sess != null && sess.getAttribute("branchId") != null) ? (long) sess.getAttribute("branchId") : -1;
 %>
 <link rel="stylesheet"
-	href="<%=request.getContextPath()%>/styles/employee.css">
+	href="<%=request.getContextPath()%>/styles/requests.css">
 
 <div class="employee-data-panel">
 	<div class="section-header">
-		<h2 id="section-title">Employees</h2>
+		<h2 id="section-title">Requests</h2>
 		<div class="filters">
 			<select id="filter-type"></select>
-			<div id="filter-value-container">
+			<div style="display: inline;" id="filter-value-container">
 				<input type="text" id="filter-value" class="filter-value"
 					placeholder="Enter value" />
 			</div>
 			<button id="filter-button">Search</button>
 			<button id="clear-button">Clear</button>
-			<% if (role >= 3) { %>
-			<button id="open-add-modal" class="add-btn">Add</button>
-			<% } %>
 		</div>
 	</div>
 	<div class="data-table-wrapper">
@@ -39,32 +36,10 @@
 	</div>
 </div>
 
-<!-- Add Employee Modal -->
-<div id="add-employee-modal" class="modal hidden">
-	<div class="modal-content">
-		<h3>Add Employee</h3>
-		<form id="add-employee-form">
-			<label>User ID</label> <input name="employeeId" type="text"
-				placeholder="Existing User ID" required
-				oninput="this.value = this.value.replace(/[^0-9]/g, '')" /> <label>Branch
-				ID</label> <input name="branchId" type="text" value="<%= branchId %>"
-				required maxlength="12"
-				oninput="this.value = this.value.replace(/[^0-9]/g, '')" /> <label>Role</label>
-			<select name="type" required>
-				<option value="EMPLOYEE">Employee</option>
-			</select>
-			<div class="button-row">
-				<button type="submit">Add</button>
-				<button type="button" id="close-employee-modal">Cancel</button>
-			</div>
-		</form>
-	</div>
-</div>
-
-<!-- Edit Modal -->
+<!-- Modal for request approval -->
 <div id="form-modal" class="modal hidden">
 	<div class="modal-content">
-		<h3 id="modal-title">Edit Employee</h3>
+		<h3 id="modal-title">Update Request</h3>
 		<form id="entity-form"></form>
 		<div class="modal-actions">
 			<button type="submit" form="entity-form">Submit</button>
@@ -79,6 +54,6 @@
     const role = <%= role %>;
     const branchId = <%= branchId %>;
 
-    import(`${contextPath}/scripts/employee.js`)
-        .then(mod => mod.initEmployeeModule(contextPath, userId, role, branchId));
+    import(`${contextPath}/scripts/requests.js`)
+        .then(mod => mod.initRequestsModule(contextPath, userId, role, branchId));
 </script>

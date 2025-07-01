@@ -11,7 +11,10 @@ body {
 
 .dashboard-wrapper {
     display: flex;
+    margin-top: 6.5vh;
     height: calc(100vh - 6.5vh - 6vh);
+    position: relative;
+    z-index: 1;
 }
 
 .sidebar {
@@ -66,13 +69,19 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 30px;
+    padding: 15px;
     background-color: #f8f9fa;
     overflow-y: auto;
+    position: relative;
+    z-index: 1;
 }
 
 .menu-item.active {
     background-color: #2a3d5f;
     border-left: 4px solid gold;
+}
+
+#profile-sidebar {
+    z-index: 1002; /* higher than content */
 }
 

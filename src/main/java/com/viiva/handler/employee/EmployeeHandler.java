@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.viiva.dao.branch.BranchDAO;
 import com.viiva.dao.employee.EmployeeDAO;
 import com.viiva.dao.user.UserDAO;
 import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
+import com.viiva.pojo.branch.Branch;
 import com.viiva.pojo.employee.Employee;
 import com.viiva.pojo.user.UserType;
 import com.viiva.session.SessionAware;
@@ -31,75 +34,80 @@ public class EmployeeHandler implements Handler<Employee> {
 
 		switch (methodAction) {
 		case "POST":
-		    try {
-		        if (sessionRole != 3 && sessionRole != 4) {
-		            throw new AuthException("Access Denied: Unauthorized to add an employee.");
-		        }
+			try {
+				if (sessionRole != 3 && sessionRole != 4) {
+					throw new AuthException("Access Denied: Unauthorized to add an employee.");
+				}
 
-		        if (BasicUtil.isNull(data)) {
-		            throw new InputException("Invalid (null) input data.");
-		        }
+				if (BasicUtil.isNull(data)) {
+					throw new InputException("Invalid (null) input data.");
+				}
 
-		        long employeeId = data.getEmployeeId();
-		        if (employeeId <= 0) {
-		            throw new InputException("Invalid or missing employeeId.");
-		        }
+				long employeeId = data.getEmployeeId();
+				if (employeeId <= 0) {
+					throw new InputException("Invalid or missing employeeId.");
+				}
 
-		        UserDAO userDao = new UserDAO();
-		        Map<String, Object> employee = userDao.getEmployeeById(employeeId);
-		        
-		        System.out.println(employee);
+				UserDAO userDao = new UserDAO();
+				Map<String, Object> employee = userDao.getEmployeeById(employeeId);
 
-		        if (BasicUtil.isNull(employee) || employee.isEmpty()) {
-		            throw new DBException("User not found for given ID.");
-		        }
+				System.out.println(employee);
 
-		        UserType type = (UserType) employee.get("type");
+				if (BasicUtil.isNull(employee) || employee.isEmpty()) {
+					throw new DBException("User not found for given ID.");
+				}
 
-		        if (type == UserType.EMPLOYEE) {
-		            throw new DBException("User is already an Employee.");
-		        }
+				UserType type = (UserType) employee.get("type");
 
-		        if (type == UserType.MANAGER) {
-		            throw new DBException("User is already a Manager.");
-		        }
+				if (type == UserType.EMPLOYEE) {
+					throw new DBException("Access Denied: User is already an employee.");
+				}
 
-		        if (sessionRole == 3) {
-		            data.setBranchId(sessionBranchId);
-		        } else if (sessionRole == 4) {
-		            if (data.getBranchId() <= 0) {
-		                throw new InputException("Branch ID must be provided by Superadmin.");
-		            }
-		        }
+				if (type == UserType.MANAGER) {
+					throw new DBException("Access Denied: User is already a Manager.");
+				}
 
-		        boolean updated = userDao.updateToEmployee(employeeId, sessionUserId);
-		        if (!updated) {
-		            throw new DBException("Failed to promote user to EMPLOYEE.");
-		        }
+				if (data.getType() != null && data.getType() != UserType.EMPLOYEE) {
+					throw new InputException("You can only promote users to EMPLOYEE.");
+				}
 
-		        EmployeeDAO empDao = new EmployeeDAO();
-		        Map<String, Object> result = empDao.addEmployee(data);
+				if (sessionRole == 3) {
+					data.setBranchId(sessionBranchId);
+				} else if (sessionRole == 4) {
+					if (data.getBranchId() <= 0) {
+						throw new InputException("Branch ID must be provided by Superadmin.");
+					}
+				}
 
-		        if (BasicUtil.isNull(result)) {
-		            throw new DBException("Employee registration failed.");
-		        }
+				data.setType(UserType.EMPLOYEE);
 
-		        DBUtil.commit();
+				boolean updated = userDao.updateToEmployee(employeeId, sessionUserId);
+				if (!updated) {
+					throw new DBException("Failed to promote user to EMPLOYEE.");
+				}
 
-		        System.out.println("New Employee added:\nEmployee_Id: " + result.get("employeeId") +
-		                           "\nBranch_Id: " + result.get("branchId"));
+				EmployeeDAO empDao = new EmployeeDAO();
+				Map<String, Object> result = empDao.addEmployee(data);
 
-		        Map<String, Object> responseData = new HashMap<>();
-		        responseData.put("message", "Employee Registered Successfully.");
-		        responseData.put("employeeId", result.get("employeeId"));
-		        responseData.put("branchId", result.get("branchId"));
-		        return responseData;
+				if (BasicUtil.isNull(result)) {
+					throw new DBException("Employee registration failed.");
+				}
 
-		    } catch (Exception e) {
-		        DBUtil.rollback();
-		        throw e;
-		    }
+				DBUtil.commit();
 
+				System.out.println("New Employee added:\nEmployee_Id: " + result.get("employeeId") + "\nBranch_Id: "
+						+ result.get("branchId"));
+
+				Map<String, Object> responseData = new HashMap<>();
+				responseData.put("message", "Employee Registered Successfully.");
+				responseData.put("employeeId", result.get("employeeId"));
+				responseData.put("branchId", result.get("branchId"));
+				return responseData;
+
+			} catch (Exception e) {
+				DBUtil.rollback();
+				throw e;
+			}
 
 		case "GET":
 			try {
@@ -112,13 +120,12 @@ public class EmployeeHandler implements Handler<Employee> {
 
 				EmployeeDAO empDao = new EmployeeDAO();
 
-
 				if (BasicUtil.isBlank(data.getEmployeeId())) {
 					return getAllEmployees(data);
 				}
 				long employeeId = data.getEmployeeId();
 				Employee employee = empDao.getEmployeeById(employeeId);
-				
+
 				if (BasicUtil.isNull(employee)) {
 					throw new DBException("Employee not found.");
 				}
@@ -165,6 +172,21 @@ public class EmployeeHandler implements Handler<Employee> {
 					throw new DBException("Employee not found.");
 				}
 
+				if (updatedEmployee.getType() == UserType.MANAGER) {
+					BranchDAO branchDao = new BranchDAO();
+					Branch branch = branchDao.getBranchById(updatedEmployee.getBranchId());
+					if (BasicUtil.isNull(branch)) {
+						throw new DBException("Branch not found.");
+					}
+					branch.setManagerId(updatedEmployee.getEmployeeId());
+					branch.setModifiedBy(sessionUserId);
+					Branch updatedBranch = branchDao.updateBranch(branch);
+
+					if (BasicUtil.isNull(updatedBranch)) {
+						throw new DBException("Failed to update branch with new manager.");
+					}
+				}
+
 				DBUtil.commit();
 
 				Map<String, Object> responseData = new HashMap<String, Object>();
@@ -194,8 +216,8 @@ public class EmployeeHandler implements Handler<Employee> {
 	public Class<Employee> getRequestType() {
 		return Employee.class;
 	}
-	
-	private Object getAllEmployees(Employee data) throws Exception{
+
+	private Object getAllEmployees(Employee data) throws Exception {
 		Map<String, Object> session = data.getSessionAttributes();
 		byte role = Byte.parseByte(session.get("role").toString());
 
@@ -204,7 +226,7 @@ public class EmployeeHandler implements Handler<Employee> {
 
 		EmployeeDAO empDao = new EmployeeDAO();
 		List<Employee> employees = empDao.getAllEmployees(role, branchId, queryParams);
-		
+
 		if (employees.isEmpty() || employees == null) {
 			throw new DBException("Employees Not Found.");
 		}

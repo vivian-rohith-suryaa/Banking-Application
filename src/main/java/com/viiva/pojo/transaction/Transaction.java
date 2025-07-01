@@ -9,6 +9,9 @@ public class Transaction {
 	private Long transactedAccount;
 	private TransactionType transactionType;
 	private PaymentMode paymentMode;
+	private boolean isExternalTransfer;
+	private String externalIfscCode;
+	private Long externalAccountId;
 	private Double amount;
 	private Double closingBalance;
 	private Long transactionTime;
@@ -92,5 +95,49 @@ public class Transaction {
 	public void setTransactionReference(long transactionReference) {
 		this.transactionReference = transactionReference;
 	}
+	
+	public boolean isExternalTransfer() {
+		return isExternalTransfer;
+	}
+
+	public void setExternalTransfer(boolean isExternalTransfer) {
+		this.isExternalTransfer = isExternalTransfer;
+	}
+
+	public String getExternalIfscCode() {
+		return externalIfscCode;
+	}
+
+	public void setExternalIfscCode(String externalIfscCode) {
+		this.externalIfscCode = externalIfscCode;
+	}
+
+	public Long getExternalAccountId() {
+		return externalAccountId;
+	}
+
+	public void setExternalAccountId(Long externalAccountId) {
+		this.externalAccountId = externalAccountId;
+	}
+	
+	@Override
+	public String toString() {
+	    return "Transaction{" +
+	            "transactionId=" + transactionId +
+	            ", transactionReference=" + transactionReference +
+	            ", customerId=" + customerId +
+	            ", accountId=" + accountId +
+	            ", transactedAccount=" + transactedAccount +
+	            ", transactionType=" + (transactionType != null ? transactionType.name() : "null") +
+	            ", paymentMode=" + (paymentMode != null ? paymentMode.name() : "null") +
+	            ", isExternalTransfer=" + isExternalTransfer +
+	            ", externalIfscCode='" + externalIfscCode + '\'' +
+	            ", externalAccountId=" + externalAccountId +
+	            ", amount=" + amount +
+	            ", closingBalance=" + closingBalance +
+	            ", transactionTime=" + transactionTime +
+	            '}';
+	}
+
 
 }

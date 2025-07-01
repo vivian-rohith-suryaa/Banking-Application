@@ -1,6 +1,7 @@
 package com.viiva.wrapper.user;
 
 import java.util.Map;
+import com.viiva.pojo.account.AccountType;
 import com.viiva.pojo.customer.Customer;
 import com.viiva.pojo.user.User;
 import com.viiva.session.SessionAware;
@@ -9,6 +10,9 @@ public class UserWrapper implements SessionAware{
 
 	private Customer customer;
 	private User user;
+	private AccountType accountType;
+	private Double balance;
+	private Long branchId;
 	private Map<String, Object> sessionAttributes;
 	private Map<String, String> queryParams;
 
@@ -38,6 +42,30 @@ public class UserWrapper implements SessionAware{
 		this.user = user;
 	}
 	
+	public AccountType getAccountType() {
+		return accountType;
+	}
+
+	public void setAccountType(AccountType accountType) {
+		this.accountType = accountType;
+	}
+
+	public Double getBalance() {
+		return balance;
+	}
+
+	public void setBalance(Double balance) {
+		this.balance = balance;
+	}
+
+	public Long getBranchId() {
+		return branchId;
+	}
+
+	public void setBranchId(Long branchId) {
+		this.branchId = branchId;
+	}
+
 	public void setPathParams(Map<String, Object> params) {
 	    if (params.containsKey("user")) {
 	        if (this.user == null) {

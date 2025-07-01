@@ -23,7 +23,6 @@ export function initBranchModule(contextPath, userId, role, userBranchId) {
     }
 
     function fetchAndRender() {
-        tbody.innerHTML = `<tr><td colspan="7">Loading...</td></tr>`;
         pageInfo.textContent = `Page ${page}`;
 
         fetch(buildURL(), {

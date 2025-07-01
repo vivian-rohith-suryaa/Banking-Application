@@ -28,14 +28,14 @@ export function initStatementPage(contextPath, userId) {
     })
     .catch(err => console.error("Failed to load accounts:", err));
 
-    // Event listener for account filter
+    // Account filter
     accountSelect.addEventListener("change", () => {
         selectedAccount = accountSelect.value;
         page = 1;
         fetchAndRender();
     });
 
-    // Pagination controls
+    // Pagination
     prevBtn.addEventListener("click", () => {
         if (page > 1) {
             page--;
@@ -51,7 +51,6 @@ export function initStatementPage(contextPath, userId) {
     });
 
     function fetchAndRender() {
-        tableBody.innerHTML = `<tr><td colspan="9">Loading...</td></tr>`;
         pageInfo.textContent = `Page ${page}`;
 
         const url =
@@ -70,7 +69,7 @@ export function initStatementPage(contextPath, userId) {
             totalFetched = txns.length;
 
             if (txns.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="9">No transactions found.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="11">No transactions found.</td></tr>`;
                 nextBtn.disabled = true;
                 return;
             }
@@ -81,14 +80,14 @@ export function initStatementPage(contextPath, userId) {
         })
         .catch(err => {
             console.error("Failed to load transactions:", err);
-            tableBody.innerHTML = `<tr><td colspan="9">Error loading transactions.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="11">Error loading transactions.</td></tr>`;
         });
     }
 
     function renderRows(transactions) {
         tableBody.innerHTML = "";
         transactions.forEach(tx => {
-            const row = document.createElement("tr");
+            const row = document.createElement("tr");``
 
             row.innerHTML = `
                 <td>${tx.transactionId}</td>
@@ -97,7 +96,12 @@ export function initStatementPage(contextPath, userId) {
                 <td>₹${tx.amount}</td>
                 <td class="${tx.transactionType === "DEBIT" ? "debit" : "credit"}">${tx.transactionType}</td>
                 <td>${tx.paymentMode}</td>
-                <td>${tx.transactedAccount || "-"}</td>
+				<td>${tx.transactedAccount > 0 ? tx.transactedAccount : "-"}</td>
+				<td>${
+				    tx.externalIfscCode && tx.externalAccountId
+				        ? `${tx.externalIfscCode} , ${tx.externalAccountId}`
+				        : "-"
+				}</td>
                 <td>₹${tx.closingBalance}</td>
                 <td>${new Date(tx.transactionTime).toLocaleString()}</td>
             `;

@@ -1,4 +1,216 @@
-/* Root Dashboard Container */
+:root {
+	--primary: #004d99;
+	--accent: #2ec27e;
+	--danger: #d9534f;
+	--background: #f9f9fc;
+	--text: #222;
+	--muted: #555;
+	--border: #e0e6ed;
+	--table-alt: #f4f7fb;
+	--radius: 12px;
+	--shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+	--font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* General */
+body {
+	margin: 0;
+	padding: 0;
+	font-family: var(--font);
+	background-color: var(--background);
+	color: var(--text);
+	overflow: hidden;
+}
+
+/* Main Wrapper */
+.superadmin-dashboard {
+	max-width: 2200px;
+	margin: 0 auto;
+	padding: 20px 32px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - 6vh - 6.5vh);
+	width: 90%;
+}
+
+/* Main Panel (2-Column Layout) */
+.dashboard-main {
+	display: flex;
+	gap: 24px;
+	height: 100%;
+	justify-content: center;
+	align-content: center;
+	flex-wrap: wrap;
+}
+
+/* === LEFT SECTION === */
+.left-section {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+/* Branch Insights Card */
+.branch-info-card {
+	background: white;
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	padding: 20px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	height: 43.5%;
+}
+
+/* Header */
+.dashboard-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 2px solid var(--border);
+	padding-bottom: 8px;
+}
+
+.dashboard-header h3 {
+	font-size: 25px;
+	color: #1b263b;
+	font-weight: 600;
+	margin: 0;
+}
+
+.go-to-branches {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	transition: transform 0.2s ease;
+}
+
+.go-to-branches img {
+	width: 22px;
+	height: 22px;
+	transition: transform 0.2s ease;
+}
+
+.go-to-branches:hover img {
+	transform: scale(1.15);
+	filter: invert(45%) sepia(92%) saturate(1300%) hue-rotate(190deg)
+		brightness(98%) contrast(95%);
+}
+
+/* Branch Sidebar + Details */
+.branch-overview-layout {
+	display: flex;
+	width: 100%;
+	height: 100%;
+    gap: 12px;	
+}
+
+/* Sidebar */
+.branch-sidebar {
+	width: 220px;
+	background: #f5f7fb;
+	border-radius: 10px;
+	border: 1px solid var(--border);
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	box-sizing: border-box;
+}
+
+.branch-tab {
+	padding: 10px 14px;
+	border-radius: 6px;
+	background-color: #fff;
+	cursor: pointer;
+	border-left: 4px solid transparent;
+	color: #1b263b;
+	font-size: 17px;
+	transition: background-color 0.2s ease;
+}
+
+.branch-tab:hover {
+	background-color: #e8f0ff;
+	border-left-color: #ffc107;
+}
+
+.branch-tab.active {
+	font-weight: bold;
+	background-color: #dce8ff;
+	border-left-color: #ffc107;
+}
+
+/* Branch Details */
+.branch-details {
+	flex: 1;
+	background: #ffffff;
+	border-radius: var(--radius);
+	border: 1px solid var(--border);
+	padding: 16px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	box-sizing: border-box;
+	font-size: 17px;
+}
+
+.branch-details .label {
+	font-weight: 600;
+	color: var(--primary);
+	display: inline-block;
+	min-width: 120px;
+	margin-right: 6px;
+}
+
+.branch-details .branch-info {
+	display: flex;
+	align-items: baseline;
+}
+
+/* === CHART CARD SHARED STYLES === */
+.admin-chart-card {
+	background: white;
+	border-radius: var(--radius);
+	box-shadow: var(--shadow);
+	padding: 20px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.admin-chart-card h3 {
+	font-size: 25px;
+	color: #1b263b;
+	margin: 6px;
+	border-bottom: 2px solid var(--border);
+	padding-bottom: 6px;
+	width: 100%;
+	text-align: left;
+}
+
+
+
+.admin-chart-card canvas {
+	width: 100% !important;
+	max-height: 300px !important;
+	margin-bottom: 12px;
+}
+
+/* === RIGHT SECTION === */
+.right-section {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+/* 
+
 .superadmin-dashboard {
     max-width: 1000px;
     margin: 0 auto;
@@ -6,10 +218,10 @@
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, sans-serif;
     color: #1b263b;
-    overflow: hidden; /* Prevent scrollbars */
+    overflow: hidden; Prevent scrollbars
 }
 
-/* Header Container */
+Header Container
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -20,20 +232,20 @@
     position: relative;
 }
 
-/* Heading */
+Heading
 .dashboard-header h2 {
     font-size: 20px;
     font-weight: 600;
     margin: 0;
 }
 
-/* Button aligned to right */
+Button aligned to right
 .go-to-branches {
     background: none;
     border: none;
     cursor: pointer;
     padding: 4px;
-    margin-left: auto; /* Pushes the button to far right */
+    margin-left: auto; Pushes the button to far right
     display: flex;
     align-items: center;
     justify-content: center;
@@ -46,13 +258,13 @@
     filter: brightness(0) invert(0.6);
 }
 
-/* Optional hover effect */
+Optional hover effect
 .go-to-branches:hover {
     background-color: rgba(33, 62, 122, 0.1);
     border-radius: 4px;
 }
 
-/* Combined Branch Info Card */
+Combined Branch Info Card
 .branch-info-card {
     display: flex;
     gap: 16px;
@@ -66,7 +278,7 @@
     flex-wrap: wrap;
 }
 
-/* Sidebar */
+Sidebar
 .branch-sidebar {
     width: 200px;
     display: flex;
@@ -101,7 +313,7 @@
     border-left-color: #ffc107;
 }
 
-/* Branch Details */
+Branch Details
 .branch-details {
     flex: 1;
     display: flex;
@@ -120,7 +332,7 @@
     margin-right: 6px;
 }
 
-/* Chart Section */
+Chart Section
 .branch-chart-section {
     display: flex;
     justify-content: space-between;
@@ -129,7 +341,7 @@
     flex-wrap: wrap;
 }
 
-/* Chart Cards */
+Chart Cards
 .admin-chart-card {
     flex: 1 1 48%;
     min-width: 300px;
@@ -155,159 +367,5 @@
     width: 100% !important;
     height: 260px !important;
     max-height: 280px;
-}
-
-/* Prevent overflow */
-body, html {
-    overflow-x: hidden;
-}
-
-
-
-/*.superadmin-dashboard {
-    width: 100%;
-    padding: 24px 32px;
-    box-sizing: border-box;
-}
-
-Header row
-.branch-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto 16px auto;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ccc;
-    width: 75%;
-}
-
-.branch-header h3 {
-    font-size: 20px;
-    color: #1b263b;
-}
-
-.go-to-branches {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-}
-
-.go-to-branches img {
-    width: 20px;
-    height: 20px;
-    filter: none;
-}
-
-Branch sidecard container
-.branch-sidecard {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    height: auto;
-    box-sizing: border-box;
-    width: 75%;
-}
-
-
-Sidebar like Accounts
-.branch-sidebar {
-    width: 240px;
-    background: #f5f7fb;
-    border-radius: 12px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid #e0e6ed;
-}
-
-.branch-tab {
-    padding: 10px 14px;
-    background-color: white;
-    border-left: 5px solid transparent;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #1b263b;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-}
-
-.branch-tab:hover {
-    background-color: #f0f4ff;
-    border-left-color: #ffc107;
-}
-
-.branch-tab.active {
-    font-weight: 600;
-    background-color: #eef3ff;
-    border-left-color: #ffc107;
-}
-
-Branch details pane
-.branch-details {
-    flex: 1;
-    background: white;
-    border-radius: 12px;
-    padding: 20px 24px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-    font-size: 14px;
-    color: #1b263b;
-    border: 1px solid #e0e6ed;
-    min-width: 0; Prevents layout overflow
-}
-
-.branch-details .label {
-    font-weight: 600;
-    color: #2f4f9d;
-    margin-right: 6px;
-}
-
-Charts container
-.branch-chart-section {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 24px;
-    max-width: 1200px;
-    margin: 24px auto 0 auto;
-    flex-wrap: wrap;
-    width: 86%;
-}
-
-Chart cards
-.admin-chart-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 48%;
-    min-width: 360px;
-    box-sizing: border-box;
-}
-
-.admin-chart-card h3 {
-    font-size: 16px;
-    color: #1b263b;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-.admin-chart-card canvas {
-    width: 75% !important;
-    max-width: 480px;
-    height: 300px !important;
 }
  */

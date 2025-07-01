@@ -139,41 +139,44 @@ public class AccountDAO {
 	
 	public List<Account> getAllAccounts(long branchId, byte role, Map<String, String> filters) {
 		List<Account> accounts = new ArrayList<>();
-		
+
 		int page = 1;
-	    int limit = 10;
+		int limit = 10;
+		boolean usePagination = true;
 
-	    if (filters != null) {
-	        if (filters.containsKey("page")) {
-	            try {
-	                page = Integer.parseInt(filters.get("page"));
-	            } catch (NumberFormatException e) {
-	                page = 1;
-	            }
-	            filters.remove("page");
-	        }
-	        if (filters.containsKey("limit")) {
-	            try {
-	                limit = Integer.parseInt(filters.get("limit"));
-	            } catch (NumberFormatException e) {
-	                limit = 10;
-	            }
-	            filters.remove("limit");
-	        }
-	    }
+		if (filters != null) {
+			if (filters.containsKey("page")) {
+				try {
+					page = Integer.parseInt(filters.get("page"));
+				} catch (NumberFormatException e) {
+					page = 1;
+				}
+				filters.remove("page");
+			}
+			if (filters.containsKey("limit")) {
+				try {
+					limit = Integer.parseInt(filters.get("limit"));
+					if (limit == -1) {
+						usePagination = false;
+					}
+				} catch (NumberFormatException e) {
+					limit = 10;
+				}
+				filters.remove("limit");
+			}
+		}
 
-	    int offset = (page - 1) * limit;
+		int offset = (page - 1) * limit;
 
 		StringBuilder query = new StringBuilder(
-			"SELECT account_id, customer_id, branch_id, type, balance, status " +
-			"FROM account "
+			"SELECT account_id, customer_id, branch_id, type, balance, status FROM account"
 		);
 
 		if (role == 2 || role == 3) {
-	        query.append(" WHERE branch_id = ?");
-	    } else {
-	        query.append(" WHERE 1=1");
-	    }
+			query.append(" WHERE branch_id = ?");
+		} else {
+			query.append(" WHERE 1=1");
+		}
 
 		if (filters != null) {
 			if (filters.containsKey("status")) {
@@ -185,10 +188,12 @@ public class AccountDAO {
 			if (filters.containsKey("customerId")) {
 				query.append(" AND customer_id = ?");
 			}
-			
 		}
-		query.append(" ORDER BY account_id DESC LIMIT ? OFFSET ?");
 
+		query.append(" ORDER BY account_id DESC");
+		if (usePagination) {
+			query.append(" LIMIT ? OFFSET ?");
+		}
 
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
 			int index = 1;
@@ -208,9 +213,11 @@ public class AccountDAO {
 					pstmt.setLong(index++, Long.parseLong(filters.get("customerId")));
 				}
 			}
-			
-			pstmt.setInt(index++, limit);
-	        pstmt.setInt(index, offset);
+
+			if (usePagination) {
+				pstmt.setInt(index++, limit);
+				pstmt.setInt(index, offset);
+			}
 
 			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
 				while (rs.next()) {

@@ -6,8 +6,6 @@ export function initDashboard(contextPath, userId, branchId, role) {
     const transactionList = document.getElementById("transaction-list");
     const paymentModeChartCanvas = document.getElementById("paymentModeChart");
 
-    let paymentModeMap = {};
-
     const headers = {
         "Content-Type": "application/json",
         "Accept": "application/json"
@@ -36,6 +34,7 @@ export function initDashboard(contextPath, userId, branchId, role) {
                 accountSidebar.appendChild(tab);
             });
 
+            // Initially show first account
             renderAccountDetails(accounts[0]);
         })
         .catch(err => {
@@ -45,71 +44,111 @@ export function initDashboard(contextPath, userId, branchId, role) {
 
     function renderAccountDetails(account) {
         accountDetailsContainer.innerHTML = `
-            <div class="balance" style="color: green;">Balance: ₹${account.balance.toFixed(2)}</div>
+            <div class="balance" style="color: green;font-size: 25px; font-weight: 600">Balance: ₹${account.balance.toFixed(2)}</div>
             <div><span class="label">Account No:</span> <span class="value">${account.accountId}</span></div>
             <div><span class="label">Branch Id:</span> <span class="value">${account.branchId}</span></div>
             <div><span class="label">Type:</span> <span class="value">${account.accountType}</span></div>
             <div><span class="label">Status:</span> <span class="value">${account.status}</span></div>
         `;
+
+        // Load transactions and chart for selected account
+        loadAccountTransactions(account.accountId);
     }
 
-    // Load Transactions
-    fetch(`${contextPath}/viiva/user/${userId}/transactions`, { method: "GET", headers })
-        .then(res => res.json())
-        .then(data => {
-            const allTransactions = data.data?.transactions || [];
+    function loadAccountTransactions(accountId) {
 
-            const recentTransactions = allTransactions.slice(0, 5);
-            if (recentTransactions.length === 0) {
-                transactionList.innerHTML = "<p>No recent transactions.</p>";
-            } else {
-                recentTransactions.forEach(tx => {
-                    const item = document.createElement("div");
-                    item.classList.add("transaction-item");
-                    const date = new Date(tx.transactionTime).toLocaleDateString();
-                    const amountColor = tx.transactionType.toUpperCase() === 'CREDIT' ? 'green' : 'red';
-                    item.innerHTML = `
-                        <div><strong>${tx.transactionType}</strong> - ₹<span style="color:${amountColor}">${tx.amount}</span></div>
-                        <div><span>Account ID:</span> ${tx.accountId}</div>
-                        <div><span>To/From:</span> ${tx.transactedAccount || '-'}</div>
-                        <div><span>Mode:</span> ${tx.paymentMode}</div>
-                        <div><span>Date:</span> ${date}</div>
-                    `;
-                    transactionList.appendChild(item);
+        fetch(`${contextPath}/viiva/account/${accountId}/transactions?limit=-1`, { method: "GET", headers })
+            .then(res => res.json())
+            .then(data => {
+                const allTransactions = data.data?.transactions || [];
+                const accountTransactions = allTransactions.filter(tx => tx.accountId === accountId);
+                const recentTransactions = accountTransactions.slice(0, 5);
+
+                transactionList.innerHTML = "";
+
+                if (recentTransactions.length === 0) {
+                    transactionList.innerHTML = "<p>No recent transactions for this account.</p>";
+                } else {
+                    recentTransactions.forEach(tx => {
+                        const item = document.createElement("div");
+                        item.classList.add("transaction-item");
+                        const date = new Date(tx.transactionTime).toLocaleDateString();
+                        const amountColor = tx.transactionType.toUpperCase() === 'CREDIT' ? 'green' : 'red';
+
+                        item.innerHTML = `
+                            <div><strong>${tx.transactionType}</strong> - ₹<span style="color:${amountColor}">${tx.amount}</span></div>
+                            <div><span>Account ID:</span> ${tx.accountId}</div>
+                            <div><span>To/From:</span> ${tx.transactedAccount || '-'}</div>
+                            <div><span>Mode:</span> ${tx.paymentMode}</div>
+                            <div><span>Date:</span> ${date}</div>
+                        `;
+                        transactionList.appendChild(item);
+                    });
+                }
+
+                // Prepare chart data (sum amount by paymentMode)
+                const paymentSummary = {};
+                accountTransactions.forEach(tx => {
+                    const mode = tx.paymentMode;
+                    const amt = tx.amount;
+                    paymentSummary[mode] = (paymentSummary[mode] || 0) + amt;
                 });
-            }
 
-            // Build full chart data from all transactions
-            allTransactions.forEach(tx => {
-                paymentModeMap[tx.paymentMode] = (paymentModeMap[tx.paymentMode] || 0) + 1;
+                renderPaymentModeChart(paymentSummary);
+            })
+            .catch(err => {
+                transactionList.innerHTML = "<p>Failed to load transactions.</p>";
+                console.error(err);
             });
+    }
 
-            renderPaymentModeChart();
-        })
-        .catch(err => {
-            transactionList.innerHTML = "<p>Failed to load transactions.</p>";
-            console.error(err);
-        });
+    function renderPaymentModeChart(summaryMap) {
+        const ctx = paymentModeChartCanvas.getContext('2d');
+        if (window.paymentChartInstance) {
+            window.paymentChartInstance.destroy();
+        }
 
-    function renderPaymentModeChart() {
-        new Chart(paymentModeChartCanvas, {
+        const modes = Object.keys(summaryMap);
+        const amounts = Object.values(summaryMap);
+        const colors = ["#3F51B5", "#009688", "#E91E63", "#FF9800", "#9C27B0", "#4CAF50"];
+
+        window.paymentChartInstance = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: Object.keys(paymentModeMap),
+                labels: modes,
                 datasets: [{
-                    data: Object.values(paymentModeMap),
-                    backgroundColor: ["#3F51B5", "#009688", "#E91E63", "#FF9800"]
+                    data: amounts,
+                    backgroundColor: colors.slice(0, modes.length)
                 }]
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    legend: { display: false }
+                }
             }
+        });
+
+        // Generate custom legend
+        const legendContainer = document.getElementById("chart-legend");
+        legendContainer.innerHTML = "";
+        modes.forEach((mode, i) => {
+            const row = document.createElement("div");
+            row.className = "chart-legend-item";
+            row.innerHTML = `
+                <div class="chart-legend-color" style="background-color: ${colors[i % colors.length]}"></div>
+                <div>${mode}: ₹${summaryMap[mode].toFixed(2)}</div>
+            `;
+            legendContainer.appendChild(row);
         });
     }
 
-	document.getElementById("Go to Accounts")?.addEventListener("click", () => {
-	    window.location.href = `${window.contextPath}/pages/home.jsp?view=account.jsp`;
-	});
-	
-	document.getElementById("view-transactions-btn")?.addEventListener("click", () => {
-	    window.location.href = `${window.contextPath}/pages/home.jsp?view=statement.jsp`;
-	});
-}
+    // Navigation handlers
+    document.getElementById("Go to Accounts")?.addEventListener("click", () => {
+        window.location.href = `${window.contextPath}/pages/home.jsp?view=account.jsp`;
+    });
 
+    document.getElementById("view-transactions-btn")?.addEventListener("click", () => {
+        window.location.href = `${window.contextPath}/pages/home.jsp?view=statement.jsp`;
+    });
+}

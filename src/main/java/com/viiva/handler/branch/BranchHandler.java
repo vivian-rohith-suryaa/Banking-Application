@@ -135,7 +135,7 @@ public class BranchHandler implements Handler<Branch> {
 		case "PUT":
 			try {
 				Long sessionBranchId = data.getSessionBranchId();
-				if (sessionRole < 3) { // roles < 3 are not allowed
+				if (sessionRole < 3) { 
 					throw new AuthException("Access Denied: Insufficient privileges.");
 				}
 

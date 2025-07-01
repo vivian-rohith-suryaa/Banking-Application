@@ -3,17 +3,104 @@ export function initPaymentForm(contextPath, userId) {
 	const resultBox = document.getElementById("payment-result");
 	const paymentModeSelect = document.getElementById("payment-mode");
 	const toAccountGroup = document.getElementById("to-account-group");
-	const toAccountInput = toAccountGroup.querySelector("input");
 	const accountSelect = document.getElementById("account-select");
 
 	const pinModal = document.getElementById("pin-modal");
 	const pinForm = document.getElementById("pin-confirm-form");
 	const closePinModal = document.getElementById("close-pin-modal");
+	
+	const toAccountSelect = document.getElementById("to-account-select");
+	const toAccountInput = document.getElementById("to-account-input");
+
 
 	let transactionPayload = null;
+	
+	// Fetch user's accounts once and store
+	let userAccounts = [];
+	fetch(`${contextPath}/viiva/user/${userId}/accounts`, {
+	    headers: { "Content-Type": "application/json" }
+	})
+	.then(res => res.json())
+	.then(data => {
+	    userAccounts = data?.data?.accounts || [];
+
+	    // Populate both account dropdowns
+	    userAccounts.forEach(acc => {
+	        const opt1 = document.createElement("option");
+	        opt1.value = acc.accountId;
+	        opt1.textContent = acc.accountId;
+	        accountSelect.appendChild(opt1);
+
+	        const opt2 = document.createElement("option");
+	        opt2.value = acc.accountId;
+	        opt2.textContent = acc.accountId;
+	        toAccountSelect.appendChild(opt2);
+	    });
+	})
+	.catch(err => console.error("Failed to load accounts:", err));
+
+	// Listen to changes on payment mode
+	paymentModeSelect.addEventListener("change", () => {
+	    const mode = paymentModeSelect.value;
+
+	    if (mode === "SELF_TRANSFER") {
+	        toAccountGroup.classList.remove("hidden");
+	        toAccountSelect.classList.remove("hidden");
+	        toAccountInput.classList.add("hidden");
+	    } else if (mode === "BANK_TRANSFER") {
+	        toAccountGroup.classList.remove("hidden");
+	        toAccountInput.classList.remove("hidden");
+	        toAccountSelect.classList.add("hidden");
+	    } else {
+	        toAccountGroup.classList.add("hidden");
+	    }
+	});
+	
+	const transferTypeRadios = document.getElementsByName("isExternal");
+	const bankTransferOptions = document.getElementById("bank-transfer-options");
+	const ifscGroup = document.getElementById("ifsc-group");
+
+	paymentModeSelect.addEventListener("change", () => {
+	    const mode = paymentModeSelect.value;
+
+	    // Hide all conditional elements by default
+	    toAccountGroup.classList.add("hidden");
+	    toAccountInput.classList.add("hidden");
+	    toAccountSelect.classList.add("hidden");
+	    bankTransferOptions.classList.add("hidden");
+	    ifscGroup.classList.add("hidden");
+
+	    if (mode === "SELF_TRANSFER") {
+	        toAccountGroup.classList.remove("hidden");
+	        toAccountSelect.classList.remove("hidden");
+	    } else if (mode === "BANK_TRANSFER") {
+	        toAccountGroup.classList.remove("hidden");
+	        toAccountInput.classList.remove("hidden");
+	        bankTransferOptions.classList.remove("hidden");
+
+	        // Check which radio is selected
+	        const selectedType = document.querySelector("input[name='isExternal']:checked")?.value;
+	        if (selectedType === "true") {
+	            ifscGroup.classList.remove("hidden");
+	        }
+	    }
+	});
+
+	// Also listen for radio changes
+	transferTypeRadios.forEach(radio => {
+	    radio.addEventListener("change", () => {
+	        if (radio.value === "true" && radio.checked) {
+	            ifscGroup.classList.remove("hidden");
+	        } else if (radio.value === "false" && radio.checked) {
+	            ifscGroup.classList.add("hidden");
+	        }
+	    });
+	});
+
+
 
 	// Fetch user's accounts
-	fetch(`${contextPath}/viiva/user/${userId}/accounts`, {
+	/*fetch(`${contextPath}/viiva/user/${userId}/accounts`, {
 		headers: { "Content-Type": "application/json" }
 	})
 	.then(async res => {
@@ -47,7 +134,7 @@ export function initPaymentForm(contextPath, userId) {
 		} else {
 			toAccountInput.removeAttribute("required");
 		}
-	});
+	});*/
 
 	// Submit form: store payload and show PIN modal
 	form.addEventListener("submit", e => {

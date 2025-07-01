@@ -38,8 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
 			pan: formData.get("pan"),
 			address: formData.get("address")
 		};
+		const accountType = formData.get("accountType");
+		const branchId = parseInt(formData.get("branchId"));
 
-		const payload = { user, customer };
+		const payload = { user, customer,branchId, accountType };
 
 		try {
 			const res = await fetch(form.dataset.endpoint, {

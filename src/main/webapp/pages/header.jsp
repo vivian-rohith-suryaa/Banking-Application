@@ -15,20 +15,6 @@
     <% if (!isLandingPage) { %>
     <div class="header-right">
         <img src="<%= request.getContextPath() %>/icons/user.svg" alt="Profile" id="profile-icon" class="header-icon">
-
-        <div id="profile-popup" class="profile-popup" style="display:none;">
-            <img src="<%= request.getContextPath() %>/icons/popup-profile.svg" alt="Profile Picture" class="popup-profile-img">
-            <div class="popup-name" id="popup-name">User Name</div>
-            <div class="popup-id" id="popup-id">ID: </div>
-            <div class="popup-email" id="popup-email">user@example.com</div>
-
-            <div class="popup-actions">
-                <img src="<%= request.getContextPath() %>/icons/popup-account.svg" title="Accounts" id="goto-accounts" class="popup-action-icon">
-                <img src="<%= request.getContextPath() %>/icons/popup-payment.svg" title="Payments" id="goto-payments" class="popup-action-icon">
-                <img src="<%= request.getContextPath() %>/icons/edit.svg" title="Edit Profile" id="edit-profile" class="popup-action-icon">
-                <img src="<%= request.getContextPath() %>/icons/logout.svg" title="Logout" id="logout-btn" class="popup-action-icon">
-            </div>
-        </div>
     </div>
     <% } %>
 </header>

@@ -67,6 +67,7 @@ public class RequestHandler implements Handler<Request> {
 				responseData.put("balance", request.getBalance());
 				responseData.put("status", request.getStatus());
 				responseData.put("remarks", request.getRemarks());
+				responseData.put("modifiedBy", request.getModifiedBy());
 
 				return responseData;
 			} catch (Exception e) {
@@ -103,6 +104,7 @@ public class RequestHandler implements Handler<Request> {
 
 				updatedRequest.put("message", "Request Updated Successfully");
 				return updatedRequest;
+				
 			} catch (Exception e) {
 				DBUtil.rollback();
 				throw (Exception) e;
@@ -147,6 +149,7 @@ public class RequestHandler implements Handler<Request> {
 			reqMap.put("balance", req.getBalance());
 			reqMap.put("status", req.getStatus());
 			reqMap.put("remarks", req.getRemarks());
+			reqMap.put("modifiedBy", req.getModifiedBy());
 			resultList.add(reqMap);
 		}
 

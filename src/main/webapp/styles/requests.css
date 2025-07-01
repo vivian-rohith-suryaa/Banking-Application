@@ -24,7 +24,6 @@ body {
 	overflow: hidden;
 }
 
-/* Panel */
 .employee-data-panel {
 	max-width: 1800px;
 	margin: 2rem auto;
@@ -58,7 +57,6 @@ body {
 	display: flex;
 	gap: 1rem;
 	flex-wrap: wrap;
-	align-items: center;
 }
 
 .filters select,
@@ -85,14 +83,6 @@ body {
 	background-color: #003366;
 }
 
-.filters .add-btn {
-	background-color: var(--accent);
-}
-
-.filters .add-btn:hover {
-	background-color: #25a36f;
-}
-
 /* Table */
 .data-table-wrapper {
 	overflow-x: auto;
@@ -116,6 +106,7 @@ body {
 	text-align: center;
 	font-weight: 600;
 	background-color: var(--primary);
+	color: #fff;
 	position: sticky;
 	top: 0;
 	z-index: 1;
@@ -247,56 +238,15 @@ body {
 }
 
 .modal-content input,
-.modal-content select {
+.modal-content select,
+.modal-content textarea {
 	padding: 0.5rem;
 	font-size: 14px;
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 }
 
-/* Add Form Button Row */
-#add-employee-form {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-}
-
-#add-employee-form .button-row {
-	display: flex;
-	justify-content: space-between;
-	gap: 1rem;
-}
-
-#add-employee-form button[type="submit"],
-#add-employee-form button[type="button"] {
-	padding: 0.5rem 1rem;
-	font-size: 14px;
-	font-weight: bold;
-	border: none;
-	border-radius: var(--radius);
-	cursor: pointer;
-	flex: 1;
-}
-
-#add-employee-form button[type="submit"] {
-	background-color: var(--accent);
-	color: white;
-}
-
-#add-employee-form button[type="submit"]:hover {
-	background-color: #25a36f;
-}
-
-#add-employee-form button[type="button"] {
-	background-color: var(--danger);
-	color: white;
-}
-
-#add-employee-form button[type="button"]:hover {
-	background-color: #c9302c;
-}
-
-/* Modal Action Buttons (Edit Modal) */
+/* Modal Buttons */
 .modal-actions {
 	display: flex;
 	justify-content: space-between;
@@ -321,9 +271,4 @@ body {
 .modal-actions button[type="button"] {
 	background-color: #ccc;
 	color: #000;
-}
-
-/* Utility */
-.hidden {
-	display: none !important;
 }

@@ -18,151 +18,48 @@
 	align-items: center;
 	gap: 2.5px;
 	cursor: pointer;
+	width: 202px;
+	justify-content: center;
 }
-
+	
 .logo {
-	height: 60px;
+	height: 50px;
 	width: auto;
 	transition: transform 0.3s ease;
 }
 
-.logo:hover {
+.logo:hover, .bank-name:hover {
 	transform: scale(1.05);
 }
 
 .bank-name {
-	height: 150px;
-	width: 150px;
+	max-height: 140px;
+	width: auto;
+	margin: 0 auto;
 	transition: transform 0.3s ease;
-}
-
-.bank-name:hover {
-	transform: scale(1.05);
 }
 
 .header-right {
 	position: absolute;
 	right: 26px;
-	top: 40%;
+	top: 50%;
 	transform: translateY(-50%);
 	display: flex;
 	align-items: center;
 }
 
-/* Icons (Logout, Profile) */
 .header-icon {
 	width: 42px;
 	height: 42px;
-	margin-top: 14px;
 	cursor: pointer;
 	margin-left: 12px;
-	filter: brightness(0) saturate(100%) invert(18%) sepia(91%) saturate(1596%) hue-rotate(190deg) brightness(90%) contrast(90%);
+	filter: brightness(0) saturate(100%) invert(18%) sepia(91%)
+		saturate(1596%) hue-rotate(190deg) brightness(90%) contrast(90%);
 	transition: transform 0.3s ease, filter 0.3s ease;
 }
 
-.icon:hover {
+.header-icon:hover {
 	transform: scale(1.1);
-	filter: brightness(0) saturate(100%) invert(32%) sepia(93%) saturate(1185%) hue-rotate(186deg) brightness(92%) contrast(91%);
-}
-
-/* Profile Popup */
-.profile-popup {
-	position: absolute;
-	top: 141%;
-    right: -10px;
-    width: 280px;
-	background: rgba(255, 255, 255, 0.95);
-	backdrop-filter: blur(10px);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-	border-radius: 12px;
-	z-index: 1001;
-	padding: 18px 20px;
-	display: none;
-	text-align: center;
-	animation: fadeIn 0.25s ease-in-out;
-}
-
-@keyframes fadeIn {
-	from { opacity: 0; transform: translateY(-10px); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-.popup-profile-img {
-	width: 70px;
-	height: 70px;
-	border-radius: 50%;
-	object-fit: cover;
-	margin: 0 auto 10px;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.popup-content {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
-	gap: 6px;
-}
-
-.popup-content p {
-	margin: 0;
-	font-size: 15px;
-	color: #222;
-	font-weight: 600;
-	word-break: break-word;
-}
-
-.popup-name {
-    font-size: 1.2em;
-    font-weight: 600;
-    color: #0a1c3f;
-    margin-bottom: 4px;
-}
-
-.popup-id {
-    font-size: 0.95em;
-    font-weight: bold;
-    color: #2f4f9d;
-    background-color: #e0e7ff;
-    padding: 3px 8px;
-    border-radius: 5px;
-    display: inline-block;
-    margin-bottom: 6px;
-}
-
-.popup-email {
-    font-size: 0.95em;
-    color: #555;
-    margin-bottom: 12px;
-}
-
-
-.popup-content .highlight {
-	background-color: gold;
-	color: #000;
-	font-size: 14px;
-	padding: 2px 6px;
-	border-radius: 6px;
-	font-weight: bold;
-}
-
-.popup-actions {
-	display: flex;
-	justify-content: space-around;
-	align-items: center;
-	margin-top: 14px;
-	gap: 14px;
-}
-
-.popup-action-icon {
-	width: 30px;
-	height: 30px;
-	cursor: pointer;
-	filter: brightness(0) saturate(100%) invert(18%) sepia(91%) saturate(1596%) hue-rotate(190deg) brightness(90%) contrast(90%);
-	transition: transform 0.2s ease, filter 0.3s ease;
-}
-
-.popup-action-icon:hover {
-	transform: scale(1.15);
-	filter: brightness(0) saturate(100%) invert(35%) sepia(90%) saturate(1300%) hue-rotate(190deg) brightness(95%) contrast(95%);
+	filter: brightness(0) saturate(100%) invert(32%) sepia(93%)
+		saturate(1185%) hue-rotate(186deg) brightness(92%) contrast(91%);
 }

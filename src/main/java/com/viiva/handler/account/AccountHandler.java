@@ -34,41 +34,70 @@ public class AccountHandler implements Handler<AccountRequest> {
 		case "POST":
 
 			try {
-				if (data.getRequest().getCustomerId() != sessionUserId) {
-					throw new AuthException("You can only request an account for yourself.");
-				}
 				if (BasicUtil.isNull(data)) {
-
 					throw new InputException("Invalid (Null) Input.");
 				}
+				Request request = data.getRequest();
+				if (BasicUtil.isNull(request)) {
+					throw new InputException("Missing request data.");
+				}
+				byte sessionRole = data.getSessionRole();
+				if (sessionRole == 1 && request.getCustomerId() != sessionUserId) {
+					throw new AuthException("Access Denied: Unauthorised to request an account.");
+				}
+				
+				if (sessionRole >= 2 && request.getCustomerId() == sessionUserId) {
+		            throw new AuthException("Access Denied: Unauthorised to create accounts for user role.");
+		        }
 
-				AccountType acctType = data.getRequest().getAccountType();
-				if (acctType == null || !(acctType == AccountType.SAVINGS || acctType == AccountType.CURRENT
+				AccountType acctType = request.getAccountType();
+				if (BasicUtil.isNull(acctType) || !(acctType == AccountType.SAVINGS || acctType == AccountType.CURRENT
 						|| acctType == AccountType.FIXED_DEPOSIT)) {
 					throw new InputException("Invalid or unsupported account type.");
 				}
+				
 				Double balance = data.getRequest().getBalance();
-				if (BasicUtil.isNull(balance) || balance <= 0) {
+				if (BasicUtil.isNull(balance) || balance < 0) {
 					throw new InputException("Balance should be greater than Zero.");
 				}
-
-				Request request = data.getRequest();
-				RequestDAO requestDao = new RequestDAO();
-				Map<String, Object> result = requestDao.createRequest(request);
-
-				if (BasicUtil.isNull(result)) {
-					throw new DBException("Couldn't request for an account");
-				}
-
-				DBUtil.commit();
-
+				
+				request.setModifiedBy(sessionUserId);
+				
 				Map<String, Object> responseData = new HashMap<String, Object>();
-				responseData.put("message", "Request created for an account.");
-				responseData.put("requestID", result.get("requestId"));
-				responseData.put("customerId", result.get("customerId"));
-				responseData.put("status", result.get("status"));
+				
+				if(sessionRole >=2) {
+					AccountDAO accountDao = new AccountDAO();
+					Map<String, Object> result = accountDao.createAccount(request);
 
-				return responseData;
+					if (BasicUtil.isNull(result)) {
+						throw new DBException("Couldn't create account directly.");
+					}
+
+					DBUtil.commit();
+
+					responseData.put("message", "Account created successfully.");
+					responseData.put("accountId", result.get("accountId"));
+					responseData.put("customerId", result.get("customerId"));
+					return responseData;
+					
+				}
+				else {
+					RequestDAO requestDao = new RequestDAO();
+					Map<String, Object> result = requestDao.createRequest(request);
+	
+					if (BasicUtil.isNull(result)) {
+						throw new DBException("Couldn't request for an account");
+					}
+	
+					DBUtil.commit();
+					
+					responseData.put("message", "Request created for an account.");
+					responseData.put("requestID", result.get("requestId"));
+					responseData.put("customerId", result.get("customerId"));
+					responseData.put("status", result.get("status"));
+	
+					return responseData;
+				}
 
 			} catch (Exception e) {
 				DBUtil.rollback();
@@ -87,7 +116,7 @@ public class AccountHandler implements Handler<AccountRequest> {
 				AccountDAO accountDao = new AccountDAO();
 
 				Account inputAccount = data.getAccount();
-				
+
 				if (inputAccount != null) {
 					if (!BasicUtil.isBlank(inputAccount.getAccountId())) {
 						long accountId = inputAccount.getAccountId();

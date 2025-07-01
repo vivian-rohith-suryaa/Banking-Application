@@ -17,103 +17,134 @@ import com.viiva.util.DBUtil;
 public class TransactionDAO {
 
 	public List<Transaction> getTransactionsByCustomerId(long customerId, Map<String, String> queryParams) {
-	    int page = 1;
-	    int limit = 10;
+		int page = 1;
+		int limit = 10;
+		boolean usePagination = true;
 
-	    if (queryParams != null) {
-	        try {
-	            if (queryParams.containsKey("page")) {
-	                page = Integer.parseInt(queryParams.get("page"));
-	            }
-	            if (queryParams.containsKey("limit")) {
-	                limit = Integer.parseInt(queryParams.get("limit"));
-	            }
-	        } catch (NumberFormatException e) {
-	            page=1;
-	            limit=10;
-	        }
-	    }
-	    int offset = (page - 1) * limit;
+		if (queryParams != null) {
+			try {
+				if (queryParams.containsKey("page")) {
+					page = Integer.parseInt(queryParams.get("page"));
+				}
+				if (queryParams.containsKey("limit")) {
+					limit = Integer.parseInt(queryParams.get("limit"));
+					if (limit == -1) {
+						usePagination = false;
+					}
+				}
+			} catch (NumberFormatException e) {
+				page = 1;
+				limit = 10;
+			}
+		}
 
-	    String query = "SELECT * FROM transaction WHERE customer_id = ? ORDER BY transaction_time DESC LIMIT ? OFFSET ?";
-	    List<Transaction> transactions = new ArrayList<>();
+		int offset = (page - 1) * limit;
 
-	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
-	        pstmt.setLong(1, customerId);
-	        pstmt.setInt(2, limit);
-	        pstmt.setInt(3, offset);
+		StringBuilder query = new StringBuilder("SELECT * FROM transaction WHERE customer_id = ? ORDER BY transaction_time DESC");
+		if (usePagination) {
+			query.append(" LIMIT ? OFFSET ?");
+		}
 
-	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-	            while (rs.next()) {
-	                Transaction txn = new Transaction();
-	                txn.setTransactionId(rs.getLong("transaction_id"));
-	                txn.setCustomerId(rs.getLong("customer_id"));
-	                txn.setAccountId(rs.getLong("account_id"));
-	                txn.setTransactedAccount(rs.getLong("transacted_account"));
-	                txn.setTransactionType(TransactionType.valueOf(rs.getString("transaction_type")));
-	                txn.setPaymentMode(PaymentMode.valueOf(rs.getString("payment_mode")));
-	                txn.setAmount(rs.getDouble("amount"));
-	                txn.setClosingBalance(rs.getDouble("closing_balance"));
-	                txn.setTransactionTime(rs.getLong("transaction_time"));
-	                transactions.add(txn);
-	            }
-	            return transactions;
-	        }
+		List<Transaction> transactions = new ArrayList<>();
 
-	    } catch (SQLException e) {
-	        throw new DBException("Failed to fetch transactions for the given customer ID." + e);
-	    }
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
+			pstmt.setLong(1, customerId);
+
+			if (usePagination) {
+				pstmt.setInt(2, limit);
+				pstmt.setInt(3, offset);
+			}
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				while (rs.next()) {
+					Transaction txn = new Transaction();
+					txn.setTransactionId(rs.getLong("transaction_id"));
+					txn.setCustomerId(rs.getLong("customer_id"));
+					txn.setAccountId(rs.getLong("account_id"));
+					txn.setTransactedAccount(rs.getLong("transacted_account"));
+					txn.setTransactionType(TransactionType.valueOf(rs.getString("transaction_type")));
+					txn.setPaymentMode(PaymentMode.valueOf(rs.getString("payment_mode")));
+					txn.setAmount(rs.getDouble("amount"));
+					txn.setClosingBalance(rs.getDouble("closing_balance"));
+					txn.setTransactionTime(rs.getLong("transaction_time"));
+					txn.setExternalTransfer(rs.getBoolean("is_external_transfer"));
+					txn.setExternalIfscCode(rs.getString("target_ifsc_code"));
+					txn.setExternalAccountId(rs.getLong("external_account_id"));
+					transactions.add(txn);
+				}
+			}
+			return transactions;
+
+		} catch (SQLException e) {
+			throw new DBException("Failed to fetch transactions for the given customer ID." + e);
+		}
 	}
-
 
 	public List<Transaction> getTransactionsByAccountId(long accountId, Map<String, String> queryParams) {
-	    int page = 1;
-	    int limit = 10;
+		int page = 1;
+		int limit = 10;
+		boolean usePagination = true;
 
-	    if (queryParams != null) {
-	        try {
-	            if (queryParams.containsKey("page")) {
-	                page = Integer.parseInt(queryParams.get("page"));
-	            }
-	            if (queryParams.containsKey("limit")) {
-	                limit = Integer.parseInt(queryParams.get("limit"));
-	            }
-	        } catch (NumberFormatException e) {
-	        	page=1;
-	            limit=10;
-	        }
-	    }
-	    int offset = (page - 1) * limit;
+		if (queryParams != null) {
+			try {
+				if (queryParams.containsKey("page")) {
+					page = Integer.parseInt(queryParams.get("page"));
+				}
+				if (queryParams.containsKey("limit")) {
+					limit = Integer.parseInt(queryParams.get("limit"));
+					if (limit == -1) {
+						usePagination = false;
+					}
+				}
+			} catch (NumberFormatException e) {
+				page = 1;
+				limit = 10;
+			}
+		}
 
-	    String query = "SELECT * FROM transaction WHERE account_id = ? ORDER BY transaction_time DESC LIMIT ? OFFSET ?";
-	    List<Transaction> transactions = new ArrayList<>();
+		int offset = (page - 1) * limit;
 
-	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
-	        pstmt.setLong(1, accountId);
-	        pstmt.setInt(2, limit);
-	        pstmt.setInt(3, offset);
+		StringBuilder query = new StringBuilder("SELECT * FROM transaction WHERE account_id = ? ORDER BY transaction_time DESC");
+		if (usePagination) {
+			query.append(" LIMIT ? OFFSET ?");
+		}
 
-	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-	            while (rs.next()) {
-	                Transaction txn = new Transaction();
-	                txn.setTransactionId(rs.getLong("transaction_id"));
-	                txn.setCustomerId(rs.getLong("customer_id"));
-	                txn.setAccountId(rs.getLong("account_id"));
-	                txn.setTransactedAccount(rs.getLong("transacted_account"));
-	                txn.setTransactionType(TransactionType.valueOf(rs.getString("transaction_type")));
-	                txn.setPaymentMode(PaymentMode.valueOf(rs.getString("payment_mode")));
-	                txn.setAmount(rs.getDouble("amount"));
-	                txn.setClosingBalance(rs.getDouble("closing_balance"));
-	                txn.setTransactionTime(rs.getLong("transaction_time"));
-	                transactions.add(txn);
-	            }
-	            return transactions;
-	        }
+		List<Transaction> transactions = new ArrayList<>();
 
-	    } catch (SQLException e) {
-	        throw new DBException("Failed to fetch transactions for the given account ID." + e);
-	    }
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
+			pstmt.setLong(1, accountId);
+
+			if (usePagination) {
+				pstmt.setInt(2, limit);
+				pstmt.setInt(3, offset);
+			}
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				while (rs.next()) {
+					Transaction txn = new Transaction();
+					txn.setTransactionId(rs.getLong("transaction_id"));
+					txn.setCustomerId(rs.getLong("customer_id"));
+					txn.setAccountId(rs.getLong("account_id"));
+					txn.setTransactedAccount(rs.getLong("transacted_account"));
+					txn.setTransactionType(TransactionType.valueOf(rs.getString("transaction_type")));
+					txn.setPaymentMode(PaymentMode.valueOf(rs.getString("payment_mode")));
+					txn.setAmount(rs.getDouble("amount"));
+					txn.setExternalTransfer(rs.getBoolean("is_external_transfer"));
+					txn.setExternalIfscCode(rs.getString("target_ifsc_code"));
+					txn.setExternalAccountId(rs.getLong("external_account_id"));
+					txn.setClosingBalance(rs.getDouble("closing_balance"));
+					txn.setTransactionTime(rs.getLong("transaction_time"));
+					transactions.add(txn);
+				}
+			}
+			return transactions;
+
+		} catch (SQLException e) {
+			throw new DBException("Failed to fetch transactions for the given account ID." + e);
+		}
 	}
+
+
 	public Map<String, Object> performTransaction(Transaction txn) {
 		String query = "INSERT INTO transaction (customer_id, account_id, transacted_account, transaction_type, payment_mode, amount, closing_balance, transaction_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -155,7 +186,8 @@ public class TransactionDAO {
 		}
 	}
 
-	public Map<String, Object> performBankTransfer(Transaction txn, long receiverCustomerId, double receiverClosingBalance) {
+	public Map<String, Object> performBankTransfer(Transaction txn, long receiverCustomerId,
+			double receiverClosingBalance) {
 		String insertSQL = "INSERT INTO transaction (transaction_reference, customer_id, account_id, transacted_account, transaction_type, payment_mode, amount, closing_balance, transaction_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (PreparedStatement debitStmt = DBUtil.prepareWithKeys(DBUtil.getConnection(), insertSQL)) {
@@ -196,7 +228,7 @@ public class TransactionDAO {
 			}
 
 			try (PreparedStatement creditStmt = DBUtil.prepare(DBUtil.getConnection(), insertSQL)) {
-				creditStmt.setLong(1, transactionReference); 
+				creditStmt.setLong(1, transactionReference);
 				creditStmt.setLong(2, receiverCustomerId);
 				creditStmt.setLong(3, txn.getTransactedAccount());
 				creditStmt.setLong(4, txn.getAccountId());
@@ -229,118 +261,180 @@ public class TransactionDAO {
 		}
 
 	}
-	
+
 	public List<Transaction> getAllTransactions(long branchId, byte role, Map<String, String> filters) {
-	    int page = 1;
-	    int limit = 10;
-	    boolean usePagination = true;
+		int page = 1;
+		int limit = 10;
+		boolean usePagination = true;
 
-	    if (filters != null) {
-	        if (filters.containsKey("page")) {
-	            try {
-	                page = Integer.parseInt(filters.get("page"));
-	            } catch (NumberFormatException e) {
-	                page = 1;
-	            }
-	            filters.remove("page");
-	        }
-	        if (filters.containsKey("limit")) {
-	            try {
-	                limit = Integer.parseInt(filters.get("limit"));
-	                if (limit == -1) {
-	                    usePagination = false;
-	                }
-	            } catch (NumberFormatException e) {
-	                limit = 10;
-	            }
-	            filters.remove("limit");
-	        }
-	    }
+		if (filters != null) {
+			if (filters.containsKey("page")) {
+				try {
+					page = Integer.parseInt(filters.get("page"));
+				} catch (NumberFormatException e) {
+					page = 1;
+				}
+				filters.remove("page");
+			}
+			if (filters.containsKey("limit")) {
+				try {
+					limit = Integer.parseInt(filters.get("limit"));
+					if (limit == -1) {
+						usePagination = false;
+					}
+				} catch (NumberFormatException e) {
+					limit = 10;
+				}
+				filters.remove("limit");
+			}
+		}
 
-	    int offset = (page - 1) * limit;
+		int offset = (page - 1) * limit;
 
-	    StringBuilder query = new StringBuilder(
-	        "SELECT t.transaction_id, t.customer_id, t.account_id, t.transacted_account, t.transaction_type, " +
-	        "t.payment_mode, t.amount, t.closing_balance, t.transaction_time " +
-	        "FROM transaction t JOIN account a ON t.account_id = a.account_id"
-	    );
+		StringBuilder query = new StringBuilder(
+				"SELECT t.transaction_id, t.customer_id, t.account_id, t.transacted_account, t.transaction_type, "
+						+ "t.payment_mode, t.amount, t.closing_balance, t.transaction_time,t.target_ifsc_code, t.external_account_id "
+						+ "FROM transaction t JOIN account a ON t.account_id = a.account_id");
 
-	    if (role == 2 || role == 3) {
-	        query.append(" WHERE a.branch_id = ?");
-	    } else {
-	        query.append(" WHERE 1=1");
-	    }
+		if (role == 2 || role == 3) {
+			query.append(" WHERE a.branch_id = ?");
+		} else {
+			query.append(" WHERE 1=1");
+		}
 
-	    if (filters != null) {
-	        if (filters.containsKey("customerId")) {
-	            query.append(" AND t.customer_id = ?");
-	        }
-	        if (filters.containsKey("accountId")) {
-	            query.append(" AND t.account_id = ?");
-	        }
-	        if (filters.containsKey("type")) {
-	            query.append(" AND t.transaction_type = ?");
-	        }
-	        if (filters.containsKey("paymentMode")) {
-	            query.append(" AND t.payment_mode = ?");
-	        }
-	    }
+		if (filters != null) {
+			if (filters.containsKey("customerId")) {
+				query.append(" AND t.customer_id = ?");
+			}
+			if (filters.containsKey("accountId")) {
+				query.append(" AND t.account_id = ?");
+			}
+			if (filters.containsKey("type")) {
+				query.append(" AND t.transaction_type = ?");
+			}
+			if (filters.containsKey("paymentMode")) {
+				query.append(" AND t.payment_mode = ?");
+			}
+		}
 
-	    query.append(" ORDER BY t.transaction_id DESC");
-	    if (usePagination) {
-	        query.append(" LIMIT ? OFFSET ?");
-	    }
-	    System.out.println("Final SQL: " + query);
+		query.append(" ORDER BY t.transaction_id DESC");
+		if (usePagination) {
+			query.append(" LIMIT ? OFFSET ?");
+		}
+		System.out.println("Final SQL: " + query);
 
-	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
-	        int index = 1;
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
+			int index = 1;
 
-	        if (role == 2 || role == 3) {
-	            pstmt.setLong(index++, branchId);
-	        }
+			if (role == 2 || role == 3) {
+				pstmt.setLong(index++, branchId);
+			}
 
-	        if (filters != null) {
-	            if (filters.containsKey("customerId")) {
-	                pstmt.setLong(index++, Long.parseLong(filters.get("customerId")));
-	            }
-	            if (filters.containsKey("accountId")) {
-	                pstmt.setLong(index++, Long.parseLong(filters.get("accountId")));
-	            }
-	            if (filters.containsKey("type")) {
-	                pstmt.setString(index++, filters.get("type"));
-	            }
-	            if (filters.containsKey("paymentMode")) {
-	                pstmt.setString(index++, filters.get("paymentMode"));
-	            }
-	        }
+			if (filters != null) {
+				if (filters.containsKey("customerId")) {
+					pstmt.setLong(index++, Long.parseLong(filters.get("customerId")));
+				}
+				if (filters.containsKey("accountId")) {
+					pstmt.setLong(index++, Long.parseLong(filters.get("accountId")));
+				}
+				if (filters.containsKey("type")) {
+					pstmt.setString(index++, filters.get("type"));
+				}
+				if (filters.containsKey("paymentMode")) {
+					pstmt.setString(index++, filters.get("paymentMode"));
+				}
+			}
 
-	        if (usePagination) {
-	            pstmt.setInt(index++, limit);
-	            pstmt.setInt(index, offset);
-	        }
+			if (usePagination) {
+				pstmt.setInt(index++, limit);
+				pstmt.setInt(index, offset);
+			}
 
-	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-	            List<Transaction> list = new ArrayList<>();
-	            while (rs.next()) {
-	                Transaction t = new Transaction();
-	                t.setTransactionId(rs.getLong("transaction_id"));
-	                t.setCustomerId(rs.getLong("customer_id"));
-	                t.setAccountId(rs.getLong("account_id"));
-	                t.setTransactedAccount(rs.getLong("transacted_account"));
-	                t.setTransactionType(TransactionType.valueOf(rs.getString("transaction_type")));
-	                t.setPaymentMode(PaymentMode.valueOf(rs.getString("payment_mode")));
-	                t.setAmount(rs.getDouble("amount"));
-	                t.setClosingBalance(rs.getDouble("closing_balance"));
-	                t.setTransactionTime(rs.getLong("transaction_time"));
-	                list.add(t);
-	            }
-	            return list;
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        throw new DBException("Error fetching transactions.", e);
-	    }
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				List<Transaction> list = new ArrayList<>();
+				while (rs.next()) {
+					Transaction t = new Transaction();
+					t.setTransactionId(rs.getLong("transaction_id"));
+					t.setCustomerId(rs.getLong("customer_id"));
+					t.setAccountId(rs.getLong("account_id"));
+					t.setTransactedAccount(rs.getLong("transacted_account"));
+					t.setTransactionType(TransactionType.valueOf(rs.getString("transaction_type")));
+					t.setExternalIfscCode(rs.getString("target_ifsc_code"));
+					t.setExternalAccountId(rs.getLong("external_account_id"));
+					t.setPaymentMode(PaymentMode.valueOf(rs.getString("payment_mode")));
+					t.setAmount(rs.getDouble("amount"));
+					t.setClosingBalance(rs.getDouble("closing_balance"));
+					t.setTransactionTime(rs.getLong("transaction_time"));
+					list.add(t);
+				}
+				return list;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error fetching transactions.", e);
+		}
 	}
 
+	public Map<String, Object> performExternalBankTransfer(Transaction txn, long sourceAccountId, long createdBy) {
+		String insertTransaction = "INSERT INTO transaction (customer_id, account_id, external_account_id, transaction_type, payment_mode, amount, closing_balance, transaction_time, is_external_transfer, target_ifsc_code) "
+				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		try (PreparedStatement pstmt = DBUtil.prepareWithKeys(DBUtil.getConnection(), insertTransaction)) {
+		    pstmt.setLong(1, txn.getCustomerId());
+		    pstmt.setLong(2, txn.getAccountId());
+		    pstmt.setLong(3, txn.getExternalAccountId());
+		    pstmt.setString(4, TransactionType.DEBIT.name());
+		    pstmt.setString(5, PaymentMode.BANK_TRANSFER.name());
+		    pstmt.setDouble(6, txn.getAmount());
+		    pstmt.setDouble(7, txn.getClosingBalance());
+		    pstmt.setLong(8, System.currentTimeMillis());
+		    pstmt.setBoolean(9, true);
+		    pstmt.setString(10, txn.getExternalIfscCode());
+
+			int rows = DBUtil.executeUpdate(pstmt);
+			if (rows == 0) {
+				throw new DBException("Failed to insert external transaction into transaction table.");
+			}
+
+			long transactionId;
+			try (ResultSet rs = pstmt.getGeneratedKeys()) {
+				if (!rs.next())
+					throw new DBException("Transaction ID not generated.");
+				transactionId = rs.getLong(1);
+			}
+
+			String insertExternal = "INSERT INTO external_transaction (transaction_id, source_account, target_account, target_ifsc, amount, transaction_time, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+			try (PreparedStatement extStmt = DBUtil.prepare(DBUtil.getConnection(), insertExternal)) {
+				extStmt.setLong(1, transactionId);
+				extStmt.setLong(2, sourceAccountId);
+				extStmt.setLong(3, txn.getExternalAccountId());
+				extStmt.setString(4, txn.getExternalIfscCode());
+				extStmt.setDouble(5, txn.getAmount());
+				extStmt.setLong(6, System.currentTimeMillis());
+				extStmt.setLong(7, createdBy);
+
+				int extRows = DBUtil.executeUpdate(extStmt);
+				if (extRows == 0) {
+					throw new DBException("Failed to insert into external_transaction table.");
+				}
+			}
+
+			Map<String, Object> result = new HashMap<>();
+			result.put("transactionId", transactionId);
+			result.put("customerId", txn.getCustomerId());
+			result.put("accountId", txn.getAccountId());
+			result.put("externalAccountId", txn.getExternalAccountId());
+			result.put("externalIfscCode", txn.getExternalIfscCode());
+			result.put("amount", txn.getAmount());
+			result.put("closingBalance", txn.getClosingBalance());
+
+			return result;
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("External Bank Transfer Failed", e);
+		}
+	}
 
 }

@@ -37,7 +37,7 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				if (BasicUtil.isNull(data)) {
 					throw new InputException("Invalid (Null) Input.");
 				}
-				
+
 				System.out.println("came here");
 
 				byte sessionRole = data.getSessionRole();
@@ -67,21 +67,18 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 					}
 
 					transactions = transactionDao.getTransactionsByAccountId(accountId, data.getQueryParams());
-				}
-				else if (!BasicUtil.isBlank(transaction.getCustomerId())) {
+				} else if (!BasicUtil.isBlank(transaction.getCustomerId())) {
 					long customerId = transaction.getCustomerId();
 
 					if (sessionRole < 2 && customerId != sessionUserId) {
 						throw new AuthException("Access Denied: Unauthorized to fetch transactions.");
 					}
 
-					transactions = transactionDao.getTransactionsByCustomerId(customerId,  data.getQueryParams());
-				}
-				else if (sessionRole >= 2) {
+					transactions = transactionDao.getTransactionsByCustomerId(customerId, data.getQueryParams());
+				} else if (sessionRole >= 2) {
 					Map<String, String> filters = data.getQueryParams();
 					transactions = transactionDao.getAllTransactions(sessionBranchId, sessionRole, filters);
-				}
-				else {
+				} else {
 					throw new InputException("Null/Empty transaction fields.");
 				}
 
@@ -100,9 +97,13 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 					map.put("transactedAccount", t.getTransactedAccount());
 					map.put("transactionType", t.getTransactionType());
 					map.put("paymentMode", t.getPaymentMode());
+					map.put("isExternalTransfer", t.isExternalTransfer());
+					map.put("externalIfscCode", t.getExternalIfscCode());
+					map.put("externalAccountId", t.getExternalAccountId());
 					map.put("amount", t.getAmount());
 					map.put("closingBalance", t.getClosingBalance());
 					map.put("transactionTime", t.getTransactionTime());
+					
 					transactionList.add(map);
 				}
 
@@ -116,7 +117,6 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				throw e;
 			}
 		}
-
 
 		case "POST": {
 			try {
@@ -137,27 +137,28 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 
 				long sourceId = inputAccount.getAccountId();
 				Long targetId = transaction.getTransactedAccount();
-				
+
 				Account source = accountDao.getAccountById(sourceId);
 				if (source == null) {
 					throw new DBException("Source account not found.");
 				}
 				long customerId = source.getCustomerId();
-				
+
 				if (customerId != sessionUserId) {
-				    throw new AuthException("Access Denied: Unauthorised to perform the transaction.");
+					throw new AuthException("Access Denied: Unauthorised to perform the transaction.");
 				}
-				
-				if(sourceId == targetId) {
-					throw new InputException("Invalid Transaction Operation.");
+
+				if (targetId != null && sourceId == targetId.longValue()) {
+				    throw new InputException("Invalid Transaction Operation.");
 				}
-				
+
+
 				Account target = null;
-				
-				if(!BasicUtil.isNull(targetId)) {
-					if(sourceId > targetId) {
+
+				if (!BasicUtil.isNull(targetId)) {
+					if (sourceId > targetId) {
 						source = accountDao.getAccountById(sourceId);
-					    target = accountDao.getAccountById(targetId);
+						target = accountDao.getAccountById(targetId);
 					} else {
 						target = accountDao.getAccountById(targetId);
 						source = accountDao.getAccountById(sourceId);
@@ -167,7 +168,7 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				// Validate PIN
 				System.out.println(inputAccount.getPin());
 				System.out.println(source.getPin());
-				
+
 				if (!BasicUtil.checkPassword(inputAccount.getPin(), source.getPin())) {
 					throw new InputException("Incorrect PIN.");
 				}
@@ -189,19 +190,24 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 					if (BasicUtil.isNull(target)) {
 						throw new InputException("Target account not found.");
 					}
-					if(!target.getCustomerId().equals(source.getCustomerId())) {
+					if (!target.getCustomerId().equals(source.getCustomerId())) {
 						throw new InputException("Self-transfer must be between accounts of the same customer.");
 					}
 				}
 
 				if (mode == PaymentMode.BANK_TRANSFER) {
-					if (BasicUtil.isNull(target)) {
-						throw new InputException("Transacted Account not found.");
+					if (transaction.isExternalTransfer()) {
+						if (BasicUtil.isBlank(transaction.getExternalAccountId()) || BasicUtil.isBlank(transaction.getExternalIfscCode())) {
+							throw new InputException("Invalid External Bank Details.");
+						}
+					} else {
+						if (BasicUtil.isNull(target)) {
+							throw new InputException("Transacted Account not found.");
+						}
+						if (BasicUtil.isBlank(transaction.getTransactedAccount())) {
+							throw new InputException(mode + " requires a transacted account.");
+						}
 					}
-					if (BasicUtil.isBlank(transaction.getTransactedAccount())) {
-						throw new InputException(mode + " requires a transacted account.");
-					}
-					
 
 				}
 
@@ -231,7 +237,15 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 							throw new InputException("Insufficient balance.");
 						}
 
-						setDebitTransfer(source, target, transaction, transactedAmount);
+						if (transaction.isExternalTransfer()) {
+							source.setBalance(source.getBalance() - transactedAmount);
+							transaction.setAccountId(source.getAccountId());
+							transaction.setCustomerId(source.getCustomerId());
+							transaction.setClosingBalance(source.getBalance());
+						} else {
+							setDebitTransfer(source, target, transaction, transactedAmount);
+						}
+
 						break;
 
 					case WITHDRAWAL:
@@ -252,8 +266,13 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 
 				Map<String, Object> result;
 				if (type == TransactionType.DEBIT && mode == PaymentMode.BANK_TRANSFER) {
-					result = transactionDao.performBankTransfer(transaction, target.getCustomerId(),
-							target.getBalance());
+					if (transaction.isExternalTransfer()) {
+						result = transactionDao.performExternalBankTransfer(transaction, source.getAccountId(),
+								sessionUserId);
+					} else {
+						result = transactionDao.performBankTransfer(transaction, target.getCustomerId(),
+								target.getBalance());
+					}
 				} else {
 					result = transactionDao.performTransaction(transaction);
 				}

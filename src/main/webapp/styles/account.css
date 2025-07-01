@@ -21,24 +21,29 @@ body {
 }
 
 .account-wrapper {
-	padding: 2rem;
+	padding: 1rem;
 	width: 100%;
-	max-width: 1200px;
+	max-width: 2000px;
 	margin: 0 auto;
 	display: flex;
 	flex-direction: column;
 	gap: 1.5rem;
+	height: 100%;
+	justify-content: flex-start;
 }
 
 .account-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	border-bottom: 2px solid #e0e6ed;
+	padding-bottom: 0.5rem;
+	margin: 0 0 0.5rem 0;
 }
 
 .account-header h3 {
 	margin: 0;
-	font-size: 1.8rem;
+	font-size: 1.7rem;
 	color: var(--primary);
 }
 
@@ -90,7 +95,8 @@ body {
 	position: relative;
 	gap: 0.5rem;
 	transition: var(--transition);
-	min-height: 200px;
+	min-height: 250px;
+	height: auto;
 }
 
 .account-card:hover {
@@ -195,8 +201,7 @@ body {
 	gap: 0.5rem;
 }
 
-.modal-card form input,
-.modal-card form select {
+.modal-card form input, .modal-card form select {
 	padding: 0.5rem;
 	border-radius: var(--border-radius);
 	border: 1px solid #ccc;
@@ -243,7 +248,7 @@ body {
 	display: none !important;
 }
 
-@media (max-width: 600px) {
+@media ( max-width : 600px) {
 	.account-display {
 		grid-template-columns: 1fr;
 	}
