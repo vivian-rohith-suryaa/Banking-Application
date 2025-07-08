@@ -6,6 +6,7 @@ import com.viiva.dao.user.UserDAO;
 import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
+import com.viiva.pojo.user.UserStatus;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
 import com.viiva.util.InputValidator;
@@ -31,8 +32,14 @@ public class SigninHandler implements Handler<SigninRequest> {
 				}
 
 				UserDAO userDao = new UserDAO();
-
+				
 				String email = requestData.getEmail();
+				
+				UserStatus userStatus = userDao.getUserStatus(email);
+				
+				if(userStatus != UserStatus.ACTIVE) {
+					throw new AuthException("Unauthorised Access: "+userStatus+" User.");
+				}
 
 				Map<String, Object> result = userDao.authenticate(email);
 

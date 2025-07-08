@@ -10,6 +10,7 @@ import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
 import com.viiva.pojo.request.Request;
+import com.viiva.pojo.request.RequestStatus;
 import com.viiva.session.SessionAware;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
@@ -82,11 +83,18 @@ public class RequestHandler implements Handler<Request> {
 				}
 				Long sessionBranchId = requestData.getSessionBranchId();
 				RequestDAO requestDao = new RequestDAO();
-
+				
 				Request existingRequest = requestDao.getRequestById(requestData.getRequestId());
 
 				if (BasicUtil.isNull(existingRequest)) {
 					throw new DBException("No such request found.");
+				}
+				System.out.println(existingRequest);
+
+				RequestStatus status = existingRequest.getStatus();
+
+				if (status != RequestStatus.PENDING) {
+					throw new InputException("Access Denied: Cannot modify request.");
 				}
 
 				if (existingRequest.getBranchId() != sessionBranchId) {
@@ -104,7 +112,7 @@ public class RequestHandler implements Handler<Request> {
 
 				updatedRequest.put("message", "Request Updated Successfully");
 				return updatedRequest;
-				
+
 			} catch (Exception e) {
 				DBUtil.rollback();
 				throw (Exception) e;

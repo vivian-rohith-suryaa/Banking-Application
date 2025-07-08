@@ -8,6 +8,7 @@ public class Branch implements SessionAware{
 
 	private Long branchId;
 	private Long managerId;
+	private String branchName;
 	private String ifscCode;
 	private String locality;
 	private String district;
@@ -74,6 +75,14 @@ public class Branch implements SessionAware{
 
 	public void setDistrict(String district) {
 		this.district = district;
+	}
+
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public void setBranchName(String branchName) {
+		this.branchName = branchName;
 	}
 
 	public String getState() {

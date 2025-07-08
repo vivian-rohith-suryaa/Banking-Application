@@ -45,20 +45,3 @@
 
 
 
-<%-- <script type="module">
-	const contextPath = "<%= request.getContextPath() %>";
-	const userId = <%= userId %>;
-
-	console.log("Initializing profile for user:", userId);
-
-	import(`${contextPath}/scripts/profile.js`)
-		.then(mod => {
-			console.log("Module loaded:", mod);
-			mod.initProfilePage(contextPath, userId);
-		})
-		.catch(err => {
-			console.error("Failed to load profile.js:", err);
-		});
-</script> --%>
-
-

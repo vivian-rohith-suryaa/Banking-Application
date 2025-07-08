@@ -19,17 +19,18 @@ public class BranchDAO {
 
 	public Map<String, Object> addBranch(Branch branch) {
 
-		String query = "INSERT INTO branch (manager_id, ifsc_code, locality, district, state, created_time, modified_by) VALUES(?,?,?,?,?,?,?)";
+		String query = "INSERT INTO branch (branch_name,manager_id, ifsc_code, locality, district, state, created_time, modified_by) VALUES(?,?,?,?,?,?,?,?)";
 
 		try (PreparedStatement pstmt = DBUtil.prepareWithKeys(DBUtil.getConnection(), query)) {
-
-			pstmt.setObject(1, branch.getManagerId());
-			pstmt.setString(2, "");
-			pstmt.setString(3, branch.getLocality());
-			pstmt.setString(4, branch.getDistrict());
-			pstmt.setString(5, branch.getState());
-			pstmt.setLong(6, System.currentTimeMillis());
-			pstmt.setLong(7, branch.getModifiedBy());
+			
+			pstmt.setString(1, branch.getBranchName());
+			pstmt.setObject(2, branch.getManagerId());
+			pstmt.setString(3, "");
+			pstmt.setString(4, branch.getLocality());
+			pstmt.setString(5, branch.getDistrict());
+			pstmt.setString(6, branch.getState());
+			pstmt.setLong(7, System.currentTimeMillis());
+			pstmt.setLong(8, branch.getModifiedBy());
 
 			int rows = DBUtil.executeUpdate(pstmt);
 			if (rows > 0) {
@@ -50,19 +51,16 @@ public class BranchDAO {
 								Map<String, Object> result = new HashMap<>();
 								result.put("branchId", branchId);
 
-								System.out.println("Completed Branch DAO with result");
 								return result;
 
 							}
 
-							System.out.println("Updating the IFSC Failed");
 							return null;
 						}
 
 					}
 				}
 			}
-			System.out.println("Completed Branch DAO with null");
 			return null;
 
 		} catch (SQLException e) {
@@ -72,18 +70,19 @@ public class BranchDAO {
 	}
 
 	public Branch updateBranch(Branch branch) {
-		String query = "UPDATE branch SET manager_id=?,locality=?,district=?,state=?,modified_time=?,modified_by=? WHERE branch_id=?";
+		String query = "UPDATE branch SET branch_name=?,manager_id=?,locality=?,district=?,state=?,modified_time=?,modified_by=? WHERE branch_id=?";
 
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			long now = System.currentTimeMillis();
-
-			pstmt.setObject(1, branch.getManagerId());
-			pstmt.setString(2, branch.getLocality());
-			pstmt.setString(3, branch.getDistrict());
-			pstmt.setString(4, branch.getState());
-			pstmt.setLong(5, now);
-			pstmt.setLong(6, branch.getModifiedBy());
-			pstmt.setLong(7, branch.getBranchId());
+			
+			pstmt.setString(1, branch.getBranchName());
+			pstmt.setObject(2, branch.getManagerId());
+			pstmt.setString(3, branch.getLocality());
+			pstmt.setString(4, branch.getDistrict());
+			pstmt.setString(5, branch.getState());
+			pstmt.setLong(6, now);
+			pstmt.setLong(7, branch.getModifiedBy());
+			pstmt.setLong(8, branch.getBranchId());
 
 			int rows = DBUtil.executeUpdate(pstmt);
 			if (rows > 0) {
@@ -98,7 +97,7 @@ public class BranchDAO {
 	}
 
 	public Branch getBranchById(long branchId) {
-		String query = "SELECT branch_id,manager_id,ifsc_code,locality,district,state,created_time,modified_time,modified_by FROM branch WHERE branch_id = ?";
+		String query = "SELECT branch_id,branch_name,manager_id,ifsc_code,locality,district,state,created_time,modified_time,modified_by FROM branch WHERE branch_id = ?";
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			pstmt.setLong(1, branchId);
 
@@ -107,6 +106,7 @@ public class BranchDAO {
 
 					Branch branch = new Branch();
 					branch.setBranchId(rs.getLong("branch_id"));
+					branch.setBranchName(rs.getString("branch_name"));
 					branch.setManagerId(rs.getLong("manager_id"));
 					branch.setIfscCode(rs.getString("ifsc_code"));
 					branch.setLocality(rs.getString("locality"));
@@ -153,7 +153,7 @@ public class BranchDAO {
 
 	    int offset = (page - 1) * limit;
 		
-		StringBuilder query = new StringBuilder("SELECT branch_id, manager_id, ifsc_code, locality, district, state, created_time, modified_time, modified_by FROM branch WHERE 1=1");
+		StringBuilder query = new StringBuilder("SELECT branch_id,branch_name, manager_id, ifsc_code, locality, district, state, created_time, modified_time, modified_by FROM branch WHERE 1=1");
 		if (filters != null) {
 			if (filters.containsKey("ifsc_code")) {
 				query.append(" AND ifsc_code = ?");
@@ -201,6 +201,7 @@ public class BranchDAO {
 				while (rs.next()) {
 					Branch branch = new Branch();
 					branch.setBranchId(rs.getLong("branch_id"));
+					branch.setBranchName(rs.getString("branch_name"));
 					branch.setManagerId(rs.getLong("manager_id"));
 					branch.setIfscCode(rs.getString("ifsc_code"));
 					branch.setLocality(rs.getString("locality"));

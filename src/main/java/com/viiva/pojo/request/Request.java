@@ -123,5 +123,22 @@ public class Request implements SessionAware{
 	        this.setRequestId(Long.parseLong(requestId));
 	    }
 	}
+	
+	@Override
+	public String toString() {
+	    return "Request{" +
+	            "requestId=" + requestId +
+	            ", customerId=" + customerId +
+	            ", branchId=" + branchId +
+	            ", accountType=" + accountType +
+	            ", balance=" + balance +
+	            ", status=" + status +
+	            ", remarks='" + remarks + '\'' +
+	            ", createdTime=" + createdTime +
+	            ", modifiedBy=" + modifiedBy +
+	            ", modifiedTime=" + modifiedTime +
+	            '}';
+	}
+
 
 }

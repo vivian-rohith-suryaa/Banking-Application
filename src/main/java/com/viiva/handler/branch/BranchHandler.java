@@ -88,6 +88,7 @@ public class BranchHandler implements Handler<Branch> {
 
 					responseData.put("message", "Branch Details fetched successfully.");
 					responseData.put("branchId", branch.getBranchId());
+					responseData.put("branchName", branch.getBranchName());
 					responseData.put("managerId", branch.getManagerId());
 					responseData.put("ifscCode", branch.getIfscCode());
 					responseData.put("locality", branch.getLocality());
@@ -111,6 +112,7 @@ public class BranchHandler implements Handler<Branch> {
 				for (Branch branch : branchList) {
 				    Map<String, Object> b = new HashMap<>();
 				    b.put("branchId", branch.getBranchId());
+				    b.put("branchName", branch.getBranchName());
 				    b.put("managerId", branch.getManagerId());
 				    b.put("ifscCode", branch.getIfscCode());
 				    b.put("locality", branch.getLocality());
@@ -166,6 +168,7 @@ public class BranchHandler implements Handler<Branch> {
 				Map<String, Object> responseData = new HashMap<String, Object>();
 				responseData.put("message", "Branch Updated Successfully.");
 				responseData.put("branchId", branch.getBranchId());
+				responseData.put("branchName", branch.getBranchName());
 				responseData.put("managerId", branch.getManagerId());
 				responseData.put("ifscCode", branch.getIfscCode());
 				responseData.put("locality", branch.getLocality());

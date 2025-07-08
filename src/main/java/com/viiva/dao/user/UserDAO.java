@@ -126,6 +126,44 @@ public class UserDAO {
 
 	}
 
+	public UserStatus getUserStatus(String email) {
+		String query = "SELECT status FROM user WHERE email = ?";
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+			pstmt.setString(1, email);
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				if (rs.next()) {
+					byte code = rs.getByte("status");
+					return UserStatus.fromCode(code);
+				} else {
+					throw new DBException("User with ID " + email + " not found.");
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while fetching the user status.", e);
+		}
+	}
+	
+	public UserStatus getUserStatus(long userId) {
+		String query = "SELECT status FROM user WHERE userId = ?";
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+			pstmt.setLong(1, userId);
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				if (rs.next()) {
+					byte code = rs.getByte("status");
+					return UserStatus.fromCode(code);
+				} else {
+					throw new DBException("User with ID " + userId + " not found.");
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while fetching the user status.", e);
+		}
+	}
+
 	public User updateUser(User user) {
 
 		String query = "UPDATE user SET name=?,email=?,phone=?,gender=?,modified_time=?,modified_by=? WHERE user_id=?";
@@ -208,97 +246,94 @@ public class UserDAO {
 		}
 	}
 
-	public List<User> getAllUsers(byte role, Long branchId, Map<String, String> filters) throws Exception{
-	    List<User> users = new ArrayList<>();
-	    
-	    int page = 1;
-	    int limit = 10;
+	public List<User> getAllUsers(byte role, Long branchId, Map<String, String> filters) throws Exception {
+		List<User> users = new ArrayList<>();
 
-	    if (filters != null) {
-	        if (filters.containsKey("page")) {
-	            try {
-	                page = Integer.parseInt(filters.get("page"));
-	            } catch (NumberFormatException e) {
-	                page = 1;
-	            }
-	            filters.remove("page");
-	        }
-	        if (filters.containsKey("limit")) {
-	            try {
-	                limit = Integer.parseInt(filters.get("limit"));
-	            } catch (NumberFormatException e) {
-	                limit = 10;
-	            }
-	            filters.remove("limit");
-	        }
-	    }
+		int page = 1;
+		int limit = 10;
 
-	    int offset = (page - 1) * limit;
+		if (filters != null) {
+			if (filters.containsKey("page")) {
+				try {
+					page = Integer.parseInt(filters.get("page"));
+				} catch (NumberFormatException e) {
+					page = 1;
+				}
+				filters.remove("page");
+			}
+			if (filters.containsKey("limit")) {
+				try {
+					limit = Integer.parseInt(filters.get("limit"));
+				} catch (NumberFormatException e) {
+					limit = 10;
+				}
+				filters.remove("limit");
+			}
+		}
 
+		int offset = (page - 1) * limit;
 
-	    StringBuilder query = new StringBuilder(
-	        "SELECT DISTINCT u.user_id, u.name, u.email, u.phone, u.gender, u.type, u.status, u.modified_by, u.modified_time " +
-	        "FROM user u"
-	    );
+		StringBuilder query = new StringBuilder(
+				"SELECT DISTINCT u.user_id, u.name, u.email, u.phone, u.gender, u.type, u.status, u.modified_by, u.modified_time "
+						+ "FROM user u");
 
-	    if (role == 2 || role == 3) {
-	        query.append(" INNER JOIN account a ON u.user_id = a.customer_id WHERE a.branch_id = ?");
-	    } else {
-	        query.append(" WHERE 1=1");
-	    }
+		if (role == 2 || role == 3) {
+			query.append(" INNER JOIN account a ON u.user_id = a.customer_id WHERE a.branch_id = ?");
+		} else {
+			query.append(" WHERE 1=1");
+		}
 
-	    if (filters != null) {
-	        if (filters.containsKey("type")) {
-	            query.append(" AND u.type = ?");
-	        }
-	        if (filters.containsKey("userId")) {
-	            query.append(" AND u.user_id = ?");
-	        }
-	    }
-	    
-	    query.append(" ORDER BY u.user_id DESC LIMIT ? OFFSET ?");
-	    
-	    try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
-	        int index = 1;
+		if (filters != null) {
+			if (filters.containsKey("type")) {
+				query.append(" AND u.type = ?");
+			}
+			if (filters.containsKey("userId")) {
+				query.append(" AND u.user_id = ?");
+			}
+		}
 
-	        if (role == 2 || role == 3) {
-	            pstmt.setLong(index++, branchId);
-	        }
+		query.append(" ORDER BY u.user_id DESC LIMIT ? OFFSET ?");
 
-	        if (filters != null) {
-	            if (filters.containsKey("type")) {
-	                pstmt.setString(index++, filters.get("type"));
-	            }
-	            if (filters.containsKey("userId")) {
-	                pstmt.setString(index++, filters.get("userId"));
-	            }
-	        }
-	        
-	        pstmt.setInt(index++, limit);
-	        pstmt.setInt(index, offset);
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query.toString())) {
+			int index = 1;
 
-	        try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
-	            while (rs.next()) {
-	                User user = new User();
-	                user.setUserId(rs.getLong("user_id"));
-	                user.setName(rs.getString("name"));
-	                user.setEmail(rs.getString("email"));
-	                user.setPhone(rs.getString("phone"));
-	                user.setGender(Gender.fromString(rs.getString("gender")));
-	                user.setType(UserType.fromCode(rs.getByte("type")));
-	                user.setStatus(UserStatus.fromCode(rs.getByte("status")));
-	                user.setModifiedBy(rs.getLong("modified_by"));
-	                user.setModifiedTime(rs.getLong("modified_time"));
-	                users.add(user);
-	            }
-	        }
+			if (role == 2 || role == 3) {
+				pstmt.setLong(index++, branchId);
+			}
 
-	        return users;
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        throw new DBException("Error occurred while fetching users.", e);
-	    }
+			if (filters != null) {
+				if (filters.containsKey("type")) {
+					pstmt.setString(index++, filters.get("type"));
+				}
+				if (filters.containsKey("userId")) {
+					pstmt.setString(index++, filters.get("userId"));
+				}
+			}
+
+			pstmt.setInt(index++, limit);
+			pstmt.setInt(index, offset);
+
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				while (rs.next()) {
+					User user = new User();
+					user.setUserId(rs.getLong("user_id"));
+					user.setName(rs.getString("name"));
+					user.setEmail(rs.getString("email"));
+					user.setPhone(rs.getString("phone"));
+					user.setGender(Gender.fromString(rs.getString("gender")));
+					user.setType(UserType.fromCode(rs.getByte("type")));
+					user.setStatus(UserStatus.fromCode(rs.getByte("status")));
+					user.setModifiedBy(rs.getLong("modified_by"));
+					user.setModifiedTime(rs.getLong("modified_time"));
+					users.add(user);
+				}
+			}
+
+			return users;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while fetching users.", e);
+		}
 	}
-
 
 }

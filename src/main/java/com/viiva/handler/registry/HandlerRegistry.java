@@ -12,7 +12,6 @@ public class HandlerRegistry {
 	static {
 		registerHandler("com.viiva.handler.account.AccountHandler", com.viiva.handler.account.AccountHandler.class);
 		registerHandler("com.viiva.handler.branch.BranchHandler", com.viiva.handler.branch.BranchHandler.class);
-		registerHandler("com.viiva.handler.notification.NotificationHandler", com.viiva.handler.notification.NotificationHandler.class);
 		registerHandler("com.viiva.handler.request.RequestHandler", com.viiva.handler.request.RequestHandler.class);
 		registerHandler("com.viiva.handler.session.SessionHandler", com.viiva.handler.session.SessionHandler.class);
 		registerHandler("com.viiva.handler.signin.SigninHandler", com.viiva.handler.signin.SigninHandler.class);

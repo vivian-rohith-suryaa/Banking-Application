@@ -137,7 +137,7 @@
 				<div id="signup-message" class="form-message"></div>
 			</form>
 			<p>
-				Already have an account? <a href="signin.jsp">Sign in</a>
+				Already have an account? <a href="signin.jsp">Login</a>
 			</p>
 		</div>
 	</div>

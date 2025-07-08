@@ -7,7 +7,7 @@
 %>
 
 <header class="banner">
-    <div class="logo-container" onclick="location.href='<%= request.getContextPath() %>/pages/home.jsp'">
+    <div class="logo-container">
         <img src="<%= request.getContextPath() %>/images/viiva_logo.png" alt="Viiva Banc Logo" class="logo" />
         <img src="<%= request.getContextPath() %>/images/viiva_banc.png" alt="Viiva Banc" class="bank-name" />
     </div>
