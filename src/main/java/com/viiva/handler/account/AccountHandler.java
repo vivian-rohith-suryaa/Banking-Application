@@ -28,6 +28,7 @@ public class AccountHandler implements Handler<AccountRequest> {
 		}
 
 		long sessionUserId = data.getSessionUserId();
+		Long sessionBranchId = data.getSessionBranchId();
 
 		switch (methodAction) {
 
@@ -57,9 +58,15 @@ public class AccountHandler implements Handler<AccountRequest> {
 				}
 				
 				Double balance = data.getRequest().getBalance();
-				if (BasicUtil.isNull(balance) || balance < 0) {
-					throw new InputException("Balance should be greater than Zero.");
+				if (BasicUtil.isNull(balance) || balance <= 0) {
+					throw new InputException("Balance should be greater than 0.");
 				}
+				
+				if (sessionRole == 2 || sessionRole == 3) {
+		            if (request.getBranchId() != sessionBranchId) {
+		                throw new AuthException("Access Denied: Cannot create account outside your own branch.");
+		            }
+		        }
 				
 				request.setModifiedBy(sessionUserId);
 				
@@ -83,6 +90,7 @@ public class AccountHandler implements Handler<AccountRequest> {
 				}
 				else {
 					RequestDAO requestDao = new RequestDAO();
+					request.setBalance(0.0);
 					Map<String, Object> result = requestDao.createRequest(request);
 	
 					if (BasicUtil.isNull(result)) {
@@ -111,7 +119,6 @@ public class AccountHandler implements Handler<AccountRequest> {
 				}
 
 				byte sessionRole = data.getSessionRole();
-				Long sessionBranchId = data.getSessionBranchId();
 
 				AccountDAO accountDao = new AccountDAO();
 

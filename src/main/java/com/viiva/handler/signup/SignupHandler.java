@@ -41,11 +41,9 @@ public class SignupHandler implements Handler<UserWrapper> {
 					throw new InputException("Invalid Input(s) found: " + validationResult);
 				}
 
-				// 1. Encrypt password
 				User user = data.getUser();
 				user.setPassword(BasicUtil.encrypt(user.getPassword()));
 
-				// 2. Insert User
 				UserDAO userDao = new UserDAO();
 				Map<String, Object> userResult = userDao.signupUser(user);
 				if (BasicUtil.isNull(userResult)) {
@@ -54,7 +52,6 @@ public class SignupHandler implements Handler<UserWrapper> {
 				long userId = (long) userResult.get("userId");
 				Byte userType = (Byte) userResult.get("userType");
 
-				// 3. Insert Customer
 				Customer customer = data.getCustomer();
 				customer.setCustomerId(userId);
 
@@ -63,12 +60,16 @@ public class SignupHandler implements Handler<UserWrapper> {
 					throw new DBException("Customer Creation Failed.");
 				}
 
-				// 4. Create Request for Account
 				AccountType accountType = data.getAccountType();
 				Long branchId = data.getBranchId();
 
 				if (BasicUtil.isNull(accountType) || BasicUtil.isNull(branchId)) {
 					throw new InputException("AccountType and BranchId must be provided.");
+				}
+				
+				if (BasicUtil.isNull(accountType) || !(accountType == AccountType.SAVINGS || accountType == AccountType.CURRENT
+						|| accountType == AccountType.FIXED_DEPOSIT)) {
+					throw new InputException("Invalid or unsupported account type.");
 				}
 
 				Request request = new Request();

@@ -1,7 +1,9 @@
 package com.viiva.util;
 
 import com.viiva.pojo.branch.Branch;
+import com.viiva.pojo.employee.Employee;
 import com.viiva.pojo.user.Gender;
+import com.viiva.pojo.user.User;
 import com.viiva.wrapper.signin.SigninRequest;
 import com.viiva.wrapper.user.UserWrapper;
 
@@ -47,26 +49,26 @@ public class InputValidator {
 		String address = data.getCustomer().getAddress();
 		
 		if (!isValidName(name)) {
-			validationResult.append("Invalid Name. ").append(" || ");
+			validationResult.append("Invalid Name. ");
 		}
 		if (!isValidEmail(email)) {
-			validationResult.append("Invalid Email Format. ").append(" || ");
+			validationResult.append("Invalid Email Format. ");
 		}
 		if (!isValidPhone(phone)) {
-			validationResult.append("Invalid Phone Number. ").append(" || ");
+			validationResult.append("Invalid Phone Number. ");
 		}
 		if (BasicUtil.isBlank(gender)) {
-			validationResult.append("Invalid Gender. ").append(" || ");
+			validationResult.append("Invalid Gender. ") ;
 		}
 		if (!isValidAadhar(aadhar)) {
-			validationResult.append("Invalid Aadhar Number. ").append(" || ");
+			validationResult.append("Invalid Aadhar Number. ") ;
 		}
 		if (!isValidPan(pan)) {
-			validationResult.append("Invalid PAN Number. ").append(" || ");
+			validationResult.append("Invalid PAN Number. ") ;
 		}
 		
 		if(!isValidAddress(address)) {
-			validationResult.append("Invalid Address. ").append("||");
+			validationResult.append("Invalid Address. ");
 		}
 
 		return validationResult;
@@ -78,14 +80,38 @@ public class InputValidator {
 		String password = data.getPassword();
 		
 		if (!isValidEmail(email)) {
-			validationResult.append("Invalid Email. ").append(" || ");
+			validationResult.append("Invalid Email. ") ;
 		}
 		if (!isStrongPassword(password)) {
-			validationResult.append("Invalid Password. ").append(" || ");
+			validationResult.append("Invalid Password. ") ;
 		}
 		
 		return validationResult;
 		
+	}
+	
+	public static StringBuilder validateEmployee(User data) {
+		
+		StringBuilder validationResult = new StringBuilder("");
+		String name = data.getName();
+		String email = data.getEmail();
+		String phone = data.getPhone();
+		Gender gender = data.getGender();
+		
+		if (!isValidName(name)) {
+			validationResult.append("Invalid Name. ");
+		}
+		if (!isValidEmail(email)) {
+			validationResult.append("Invalid Email Format. ");
+		}
+		if (!isValidPhone(phone)) {
+			validationResult.append("Invalid Phone Number. ");
+		}
+		if (BasicUtil.isBlank(gender)) {
+			validationResult.append("Invalid Gender. ") ;
+		}
+		
+		return validationResult;
 	}
 	
 	public static StringBuilder validateAddress(Branch data) {

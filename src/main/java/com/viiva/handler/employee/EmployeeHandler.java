@@ -14,10 +14,12 @@ import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
 import com.viiva.pojo.branch.Branch;
 import com.viiva.pojo.employee.Employee;
+import com.viiva.pojo.user.UserStatus;
 import com.viiva.pojo.user.UserType;
 import com.viiva.session.SessionAware;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
+import com.viiva.util.InputValidator;
 
 public class EmployeeHandler implements Handler<Employee> {
 
@@ -42,67 +44,71 @@ public class EmployeeHandler implements Handler<Employee> {
 				if (BasicUtil.isNull(data)) {
 					throw new InputException("Invalid (null) input data.");
 				}
-
-				long employeeId = data.getEmployeeId();
-				if (employeeId <= 0) {
-					throw new InputException("Invalid or missing employeeId.");
+				
+				UserType requestedType = data.getType();
+				if (requestedType == null) {
+					requestedType = UserType.EMPLOYEE;
 				}
 
-				UserDAO userDao = new UserDAO();
-				Map<String, Object> employee = userDao.getEmployeeById(employeeId);
-
-				System.out.println(employee);
-
-				if (BasicUtil.isNull(employee) || employee.isEmpty()) {
-					throw new DBException("User not found for given ID.");
+				if (sessionRole == 3 && requestedType != UserType.EMPLOYEE) {
+					throw new AuthException("Access Denied: Unauthorised Action.");
 				}
-
-				UserType type = (UserType) employee.get("type");
-
-				if (type == UserType.EMPLOYEE) {
-					throw new DBException("Access Denied: User is already an employee.");
+				
+				if (sessionRole == 4 && (requestedType != UserType.EMPLOYEE && requestedType != UserType.MANAGER)) {
+					throw new InputException("Access Denied: Unauthorised Action.");
 				}
-
-				if (type == UserType.MANAGER) {
-					throw new DBException("Access Denied: User is already a Manager.");
-				}
-
-				if (data.getType() != null && data.getType() != UserType.EMPLOYEE) {
-					throw new InputException("You can only promote users to EMPLOYEE.");
-				}
-
+				
 				if (sessionRole == 3) {
 					data.setBranchId(sessionBranchId);
 				} else if (sessionRole == 4) {
-					if (data.getBranchId() <= 0) {
-						throw new InputException("Branch ID must be provided by Superadmin.");
+					if (BasicUtil.isNull(data.getBranchId()) || data.getBranchId() <= 0) {
+						throw new InputException("Invalid Branch ID.");
 					}
 				}
+				
+				data.setType(requestedType);
+				data.setStatus(UserStatus.ACTIVE);
+				data.setCreatedTime(System.currentTimeMillis());
+				data.setModifiedTime(System.currentTimeMillis());
+				data.setModifiedBy(sessionUserId);
+				
+				StringBuilder validationResult = InputValidator.validateEmployee(data);
 
-				data.setType(UserType.EMPLOYEE);
-
-				boolean updated = userDao.updateToEmployee(employeeId, sessionUserId);
-				if (!updated) {
-					throw new DBException("Failed to promote user to EMPLOYEE.");
+				if (!InputValidator.isStrongPassword(data.getPassword())) {
+					validationResult.append("Password: " + data.getPassword()
+							+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
 				}
 
+				if (!validationResult.toString().isEmpty()) {
+					throw new InputException("Invalid Input(s) found: " + validationResult);
+				}
+				
+				data.setPassword(BasicUtil.encrypt(data.getPassword()));
+			
+				UserDAO userDao = new UserDAO();
+				Map<String, Object> userResult = userDao.createEmployee(data);
+				if (BasicUtil.isNull(userResult)) {
+					throw new DBException("Failed to create User.");
+				}
+				
+				long userId = (long) userResult.get("userId");
+				data.setEmployeeId(userId);
+				
 				EmployeeDAO empDao = new EmployeeDAO();
 				Map<String, Object> result = empDao.addEmployee(data);
-
 				if (BasicUtil.isNull(result)) {
-					throw new DBException("Employee registration failed.");
+					throw new DBException("Failed to register employee.");
 				}
 
 				DBUtil.commit();
 
-				System.out.println("New Employee added:\nEmployee_Id: " + result.get("employeeId") + "\nBranch_Id: "
-						+ result.get("branchId"));
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Employee created successfully.");
+				response.put("employeeId", result.get("employeeId"));
+				response.put("branchId", result.get("branchId"));
+				response.put("role", data.getType().name());
 
-				Map<String, Object> responseData = new HashMap<>();
-				responseData.put("message", "Employee Registered Successfully.");
-				responseData.put("employeeId", result.get("employeeId"));
-				responseData.put("branchId", result.get("branchId"));
-				return responseData;
+				return response;
 
 			} catch (Exception e) {
 				DBUtil.rollback();

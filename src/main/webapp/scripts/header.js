@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		const contextPath = window.contextPath || "";
 		const userId = window.sessionUserId || -1;
+		const userRole = window.sessionRole || 0;
 
 		if (!sidebar.classList.contains("loaded")) {
 			// First time: fetch HTML and module
@@ -19,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					import(`${contextPath}/scripts/profile.js`)
 						.then(mod => {
 							if (typeof mod.initProfilePage === "function") {
-								mod.initProfilePage(contextPath, userId);
+								mod.initProfilePage(contextPath, userId, userRole);
 							}
 						})
 						.catch(err => console.error("Failed to load profile.js module:", err));

@@ -35,6 +35,10 @@ byte role = (sess != null && sess.getAttribute("role") != null) ? (byte) sess.ge
 				<img src="<%=request.getContextPath()%>/icons/home.svg" alt="Home">
 				<span>Home</span>
 			</div>
+			<div class="menu-item" data-page="payment.jsp">
+				<img src="<%=request.getContextPath()%>/icons/payment.svg"
+					alt="Payments"> <span>Payments</span>
+			</div>
 
 			<%
 			if (role == 1) {
@@ -42,10 +46,6 @@ byte role = (sess != null && sess.getAttribute("role") != null) ? (byte) sess.ge
 			<div class="menu-item" data-page="account.jsp">
 				<img src="<%=request.getContextPath()%>/icons/account.svg"
 					alt="Accounts"> <span>Accounts</span>
-			</div>
-			<div class="menu-item" data-page="payment.jsp">
-				<img src="<%=request.getContextPath()%>/icons/payment.svg"
-					alt="Payments"> <span>Payments</span>
 			</div>
 			<div class="menu-item" data-page="statement.jsp">
 				<img src="<%=request.getContextPath()%>/icons/statement.svg"

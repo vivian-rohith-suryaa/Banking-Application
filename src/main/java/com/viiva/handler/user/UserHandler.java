@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.viiva.dao.account.AccountDAO;
 import com.viiva.dao.customer.CustomerDAO;
 import com.viiva.dao.user.UserDAO;
 import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.InputException;
 import com.viiva.handler.Handler;
+import com.viiva.pojo.account.AccountType;
 import com.viiva.pojo.customer.Customer;
+import com.viiva.pojo.request.Request;
 import com.viiva.pojo.user.User;
 import com.viiva.session.SessionAware;
 import com.viiva.util.BasicUtil;
@@ -27,6 +30,7 @@ public class UserHandler implements Handler<UserWrapper> {
 			throw new AuthException("Unauthorized: Session not found.");
 		}
 		long sessionUserId = data.getSessionUserId();
+		byte sessionRole = data.getSessionRole();
 
 		switch (methodAction) {
 
@@ -87,6 +91,98 @@ public class UserHandler implements Handler<UserWrapper> {
 				throw (Exception) e;
 			}
 
+		case "POST":
+			try {
+				if (BasicUtil.isNull(data) || BasicUtil.isNull(data.getUser())
+						|| BasicUtil.isNull(data.getCustomer())) {
+					throw new InputException("Invalid (Null) Input.");
+				}
+
+				if (sessionRole <= 1) {
+					throw new AuthException("Access Denied: Unauthorized Access to create new User.");
+				}
+
+				StringBuilder validationResult = InputValidator.validateUser(data);
+
+				if (!InputValidator.isStrongPassword(data.getUser().getPassword())) {
+					validationResult.append("Password: " + data.getUser().getPassword()
+							+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
+				}
+
+				if (!validationResult.toString().isEmpty()) {
+					throw new InputException("Invalid Input(s) found: " + validationResult);
+				}
+
+				User user = data.getUser();
+				user.setPassword(BasicUtil.encrypt(user.getPassword()));
+
+				UserDAO userDao = new UserDAO();
+				Map<String, Object> userResult = userDao.signupUser(user);
+				if (BasicUtil.isNull(userResult)) {
+					throw new DBException("User Registration Failed.");
+				}
+				long userId = (long) userResult.get("userId");
+
+				Customer customer = data.getCustomer();
+				customer.setCustomerId(userId);
+
+				CustomerDAO customerDao = new CustomerDAO();
+				if (!customerDao.signupCustomer(customer)) {
+					throw new DBException("Customer Creation Failed.");
+				}
+
+				Long sessionBranchId = data.getSessionBranchId();
+
+				AccountType accountType = data.getAccountType();
+				Long branchId = data.getBranchId();
+				Double balance = data.getBalance();
+
+				if (BasicUtil.isNull(accountType) || BasicUtil.isNull(branchId)) {
+					throw new InputException("AccountType and BranchId must be provided.");
+				}
+
+				if (BasicUtil.isNull(accountType) || !(accountType == AccountType.SAVINGS
+						|| accountType == AccountType.CURRENT || accountType == AccountType.FIXED_DEPOSIT)) {
+					throw new InputException("Invalid or unsupported account type.");
+				}
+
+				if (BasicUtil.isNull(balance) || balance <= 0.0) {
+					throw new InputException("Balance must be greater than 0.");
+				}
+
+				if ((sessionRole == 2 || sessionRole == 3) && !branchId.equals(sessionBranchId)) {
+					throw new AuthException("Access Denied: Cannot create accounts outside your own branch.");
+				}
+
+				Request request = new Request();
+				request.setCustomerId(userId);
+				request.setBranchId(branchId);
+				request.setAccountType(accountType);
+				request.setBalance(balance);
+				request.setModifiedBy(sessionUserId);
+
+				AccountDAO accountDao = new AccountDAO();
+				Map<String, Object> accountResult = accountDao.createAccount(request);
+				if (BasicUtil.isNull(accountResult)) {
+					throw new DBException("Account creation failed.");
+				}
+
+				DBUtil.commit();
+
+				System.out.println("New user signed up with request\nUser Id: " + userId);
+
+				Map<String, Object> response = new HashMap<>();
+				response.put("message", "Signup Successful. Account created.");
+				response.put("userId", userId);
+				response.put("accountId", accountResult.get("accountId"));
+
+				return response;
+
+			} catch (Exception e) {
+				DBUtil.rollback();
+				throw (Exception) e;
+			}
+
 		case "PUT":
 
 			try {
@@ -94,7 +190,13 @@ public class UserHandler implements Handler<UserWrapper> {
 					throw new InputException("Invalid (Null) Input.");
 				}
 
-				String validationResult = InputValidator.validateUser(data).toString();
+				String validationResult;
+				if (sessionRole < 2) {
+
+					validationResult = InputValidator.validateUser(data).toString();
+				} else {
+					validationResult = InputValidator.validateEmployee(data.getUser()).toString();
+				}
 
 				if (sessionUserId != data.getUser().getUserId()) {
 					throw new AuthException("Access Denied: Unauthorized Access to modify user details.");
@@ -114,32 +216,32 @@ public class UserHandler implements Handler<UserWrapper> {
 					throw new DBException("Updating User details failed.");
 				}
 
-				Customer customer = data.getCustomer();
-				customer.setCustomerId(user.getUserId());
-				CustomerDAO customerDao = new CustomerDAO();
-
-				Customer updatedCustomer = customerDao.updateCustomer(customer);
-				if (BasicUtil.isNull(updatedCustomer)) {
-					throw new DBException("Updating User details failed.");
-				}
-
-				DBUtil.commit();
-
 				Map<String, Object> responseData = new HashMap<String, Object>();
-
 				responseData.put("message", "User Updated Successfully");
 				responseData.put("userId", updatedUser.getUserId());
 				responseData.put("name", updatedUser.getName());
 				responseData.put("email", updatedUser.getEmail());
 				responseData.put("phone", updatedUser.getPhone());
 				responseData.put("gender", updatedUser.getGender());
-				responseData.put("dob", updatedCustomer.getDob());
-				responseData.put("aadhar", updatedCustomer.getAadhar());
-				responseData.put("pan", updatedCustomer.getPan());
-				responseData.put("address", updatedCustomer.getAddress());
 				responseData.put("modified_time", updatedUser.getModifiedTime());
 				responseData.put("modified_by", updatedUser.getModifiedBy());
 
+				Customer customer = data.getCustomer();
+				if (customer != null) {
+					customer.setCustomerId(user.getUserId());
+					CustomerDAO customerDao = new CustomerDAO();
+					Customer updatedCustomer = customerDao.updateCustomer(customer);
+					if (BasicUtil.isNull(updatedCustomer)) {
+						throw new DBException("Updating Customer details failed.");
+					}
+
+					responseData.put("dob", updatedCustomer.getDob());
+					responseData.put("aadhar", updatedCustomer.getAadhar());
+					responseData.put("pan", updatedCustomer.getPan());
+					responseData.put("address", updatedCustomer.getAddress());
+				}
+
+				DBUtil.commit();
 				return responseData;
 			} catch (Exception e) {
 				DBUtil.rollback();
@@ -168,11 +270,11 @@ public class UserHandler implements Handler<UserWrapper> {
 		CustomerDAO customerDao = new CustomerDAO();
 
 		List<User> users = userDao.getAllUsers(role, branchId, queryParams);
-		
+
 		if (users.isEmpty()) {
 			throw new DBException("No Users Found.");
 		}
-		
+
 		List<Map<String, Object>> resultList = new ArrayList<>();
 
 		for (User user : users) {

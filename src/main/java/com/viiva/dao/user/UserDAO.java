@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.viiva.exceptions.DBException;
+import com.viiva.pojo.employee.Employee;
 import com.viiva.pojo.user.Gender;
 import com.viiva.pojo.user.User;
 import com.viiva.pojo.user.UserStatus;
@@ -62,6 +63,75 @@ public class UserDAO {
 			throw new DBException("Error while signing up the user.", e);
 		}
 	}
+	
+	public Map<String, Object> createEmployee(Employee employee) {
+
+		String query = "INSERT INTO user (name, email, phone, gender, password, type, status, created_time,modified_time,modified_by) VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+		try (PreparedStatement pstmt = DBUtil.prepareWithKeys(DBUtil.getConnection(), query)) {
+
+			pstmt.setString(1, employee.getName());
+			pstmt.setString(2, employee.getEmail());
+			pstmt.setString(3, employee.getPhone());
+			pstmt.setString(4, employee.getGender().name());
+			pstmt.setString(5, employee.getPassword());
+			pstmt.setByte(6,employee.getType().getCode());
+			pstmt.setByte(7, employee.getStatus().getCode());
+			pstmt.setLong(8, System.currentTimeMillis());
+			pstmt.setLong(9, System.currentTimeMillis());
+			pstmt.setLong(10, employee.getModifiedBy());
+
+			int rows = DBUtil.executeUpdate(pstmt);
+			if (rows > 0) {
+				try (ResultSet rs = pstmt.getGeneratedKeys()) {
+					if (rs.next()) {
+						long userId = rs.getLong(1);
+						Map<String, Object> result = new HashMap<>();
+						result.put("userId", userId);
+						result.put("userType", employee.getType().getCode());
+
+						return result;
+					}
+				}
+			}
+			return null;
+		} catch (SQLIntegrityConstraintViolationException e) {
+
+			String message = e.getMessage();
+
+			if (message.contains("'user.email'")) {
+				throw new DBException("Duplicate Entry for Email found.");
+			} else if (message.contains("user.phone")) {
+				throw new DBException("Duplicate Entry for Phone found.");
+			} else {
+				throw new DBException("Constraint Violation occurred Database.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error while signing up the user.", e);
+		}
+	}
+	
+	public String getUserPassword(long userId) {
+		
+		String query = "SELECT password FROM user WHERE user_id = ?";
+		
+		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
+			pstmt.setLong(1, userId);
+			
+			try (ResultSet rs = DBUtil.executeQuery(pstmt)) {
+				if (rs.next()) {
+					return rs.getString("password");
+				}
+				return null;
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new DBException("Error occurred while fetching the user credentials.", e);
+		}
+	}
+
 
 	public Map<String, Object> authenticate(String email) {
 		String query = "SELECT user_id, password, type, "

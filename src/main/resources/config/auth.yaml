@@ -12,6 +12,10 @@ auth:
       - path: /viiva/auth/logout
         method: POST
         roles: [1,2,3,4]
+#Add New User
+      - path: /viiva/user
+        method: POST
+        roles: [2,3,4]
 #View All Users
       - path: /viiva/user
         method: GET

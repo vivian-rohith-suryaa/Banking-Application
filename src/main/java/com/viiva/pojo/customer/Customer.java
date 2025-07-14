@@ -1,6 +1,8 @@
 package com.viiva.pojo.customer;
 
-public class Customer{
+import com.viiva.pojo.user.User;
+
+public class Customer extends User{
 
 	private Long customerId;
 	private String dob;

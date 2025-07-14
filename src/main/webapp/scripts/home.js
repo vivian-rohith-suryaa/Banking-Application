@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					import(`${contextPath}/scripts/payment.js`)
 						.then(mod => {
 							if (typeof mod.initPaymentForm === "function") {
-								mod.initPaymentForm(contextPath, sessionUserId);
+								mod.initPaymentForm(contextPath, sessionUserId, sessionRole);
 							}
 						})
 						.catch(err => {

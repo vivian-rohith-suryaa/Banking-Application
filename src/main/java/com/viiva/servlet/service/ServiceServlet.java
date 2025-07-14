@@ -69,10 +69,6 @@ public class ServiceServlet extends HttpServlet {
 			Class<?> requestClass = handler.getRequestType();
 			Object requestData = gson.fromJson(reader, requestClass);
 			
-			BufferedReader Xreader = request.getReader();
-			String reqBody = Xreader.lines().collect(Collectors.joining());
-			System.out.println("Raw Request Body: " + reqBody);
-			
 			System.out.println("Deserialized request:" + gson.toJson(requestData));
 
 			if (BasicUtil.isNull(requestData)) {

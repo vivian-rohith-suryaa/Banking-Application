@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import com.viiva.dao.account.AccountDAO;
 import com.viiva.dao.transaction.TransactionDAO;
+import com.viiva.dao.user.UserDAO;
 import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.DBException;
 import com.viiva.exceptions.InputException;
@@ -17,6 +18,7 @@ import com.viiva.pojo.transaction.TransactionType;
 import com.viiva.session.SessionAware;
 import com.viiva.util.BasicUtil;
 import com.viiva.util.DBUtil;
+import com.viiva.util.InputValidator;
 import com.viiva.wrapper.account.AccountTransaction;
 
 public class TransactionHandler implements Handler<AccountTransaction> {
@@ -29,6 +31,7 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 		}
 
 		long sessionUserId = data.getSessionUserId();
+		byte sessionRole = data.getSessionRole();
 
 		switch (methodAction) {
 
@@ -40,7 +43,6 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 
 				System.out.println("came here");
 
-				byte sessionRole = data.getSessionRole();
 				Long sessionBranchId = data.getSessionBranchId();
 
 				TransactionDAO transactionDao = new TransactionDAO();
@@ -125,7 +127,7 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				}
 				Account inputAccount = data.getAccount();
 				Transaction transaction = data.getTransaction();
-
+				
 				double transactedAmount = transaction.getAmount();
 
 				if (BasicUtil.isNull(transactedAmount) || transactedAmount <= 0) {
@@ -144,9 +146,9 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 				}
 				long customerId = source.getCustomerId();
 
-				if (customerId != sessionUserId) {
-					throw new AuthException("Access Denied: Unauthorised to perform the transaction.");
-				}
+//				if (customerId != sessionUserId) {
+//					throw new AuthException("Access Denied: Unauthorised to perform the transaction.");
+//				}
 
 				if (targetId != null && sourceId == targetId.longValue()) {
 				    throw new InputException("Invalid Transaction Operation.");
@@ -164,17 +166,46 @@ public class TransactionHandler implements Handler<AccountTransaction> {
 						source = accountDao.getAccountById(sourceId);
 					}
 				}
-
-				// Validate PIN
-				System.out.println(inputAccount.getPin());
-				System.out.println(source.getPin());
-
-				if (!BasicUtil.checkPassword(inputAccount.getPin(), source.getPin())) {
-					throw new InputException("Incorrect PIN.");
-				}
-
+				
 				PaymentMode mode = transaction.getPaymentMode();
 				TransactionType type = transaction.getTransactionType();
+
+				if ((mode == PaymentMode.DEPOSIT || mode == PaymentMode.WITHDRAWAL) && sessionRole <= 1) {
+					throw new AuthException("Access Denied: Unauthorised to perform " + mode + ".");
+				}
+				
+				if (sessionUserId == customerId) {
+				    if (!BasicUtil.checkPassword(inputAccount.getPin(), source.getPin())) {
+				        throw new InputException("Incorrect PIN.");
+				    }
+				} else {
+					String password = data.getPassword();
+					
+					StringBuilder validationResult =new StringBuilder();
+					
+					if(BasicUtil.isNull(password)) {
+						throw new InputException("Password is required for employee-initiated transactions.");
+					}
+					
+					if (!InputValidator.isStrongPassword(password)) {
+						validationResult.append("Password: " + password
+								+ ". The password must be 8 to 20 characters long, include at least one uppercase letter, at least one number, and at least one special character (@$!%*?&#).");
+					}
+
+					if (!validationResult.toString().isEmpty()) {
+						throw new InputException("Invalid Input found: " + validationResult);
+					}
+
+				    UserDAO userDao = new UserDAO();
+				    String userPassword = userDao.getUserPassword(sessionUserId);
+				    if (userPassword == null) {
+				        throw new AuthException("User not found.");
+				    }
+				    if (!BasicUtil.checkPassword(password, userPassword)) {
+				        throw new InputException("Incorrect Password.");
+				    }
+				}
+
 
 				if ((mode == PaymentMode.WITHDRAWAL || mode == PaymentMode.DEPOSIT)
 						&& !BasicUtil.isBlank(transaction.getTransactedAccount())) {

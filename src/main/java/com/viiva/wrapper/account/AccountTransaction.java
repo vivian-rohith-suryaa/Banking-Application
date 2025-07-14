@@ -10,6 +10,7 @@ public class AccountTransaction implements SessionAware{
 
 	private Account account;
 	private Transaction transaction;
+	private String password;
 	private Map<String, Object> sessionAttributes;
 	private Map<String, String> queryParams;
 
@@ -63,6 +64,14 @@ public class AccountTransaction implements SessionAware{
 			String customerId = params.get("user").toString();
 			this.transaction.setCustomerId(Long.parseLong(customerId));
 		}
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 }
