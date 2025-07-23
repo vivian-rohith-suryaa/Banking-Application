@@ -25,40 +25,53 @@ export function initRequestsModule(contextPath, userId, role, branchId) {
 	let page = 1;
 	const limit = 10;
 
-	const filters = ["branchId", "status", "customerId"];
+	const filters = role > 3 ? ["branchId", "status", "customerId"] : ["customerId", "status"] ;
+
 	const columns = ["requestId", "branchId", "customerId", "accountType", "status", "balance", "remarks"];
 
 	// Initialize filter dropdown
 	filterType.innerHTML = filters
-			.map(f => `<option value="${f}">${f.replace(/([A-Z])/g, " $1").toUpperCase()}</option>`)
-			.join("");
-
+	  .map(f => `<option value="${f}">${f.replace(/([A-Z])/g, " $1").toUpperCase()}</option>`)
+	  .join("");
 
 	filterType.addEventListener("change", () => {
-		const key = filterType.value;
-		const existing = document.getElementById("filter-value");
-		if (existing) existing.remove();
+	  const key = filterType.value;
 
-		let newInput;
+	  const existing = document.getElementById("filter-value");
+	  if (existing) existing.remove();
 
-		if (key === "status") {
-			newInput = document.createElement("select");
-			["", "PENDING", "APPROVED", "REJECTED"].forEach(opt => {
-				const option = document.createElement("option");
-				option.value = opt;
-				option.textContent = opt || "--Select Status--";
-				newInput.appendChild(option);
-			});
-		} else {
-			newInput = document.createElement("input");
-			newInput.type = "text";
-			newInput.placeholder = "Enter value";
-		}
+	  let newInput;
 
-		newInput.id = "filter-value";
-		newInput.className = "filter-value";
-		filterValueInput = newInput;
-		filterContainer.appendChild(newInput);
+	  if (key === "status") {
+	    newInput = document.createElement("select");
+	    ["", "PENDING", "APPROVED", "REJECTED"].forEach(opt => {
+	      const option = document.createElement("option");
+	      option.value = opt;
+	      option.textContent = opt || "--Select Status--";
+	      newInput.appendChild(option);
+	    });
+	  } else {
+	    newInput = document.createElement("input");
+	    newInput.type = "text";
+	    newInput.placeholder = "Enter 12-digit ID";
+	    newInput.maxLength = 12;
+	    newInput.inputMode = "numeric"; // for mobile support
+
+	    // Accept only digits
+	    newInput.addEventListener("input", (e) => {
+	      e.target.value = e.target.value.replace(/[^0-9]/g, "").slice(0, 12);
+	    });
+
+	    newInput.addEventListener("keypress", (e) => {
+	      if (!/[0-9]/.test(e.key)) {
+	        e.preventDefault();
+	      }
+	    });
+	  }
+
+	  newInput.id = "filter-value";
+	  newInput.className = "filter-value styled-input"; // Add styling class
+	  filterContainer.appendChild(newInput);
 	});
 
 	function buildURL() {
@@ -74,11 +87,34 @@ export function initRequestsModule(contextPath, userId, role, branchId) {
 			.then(res => res.json())
 			.then(data => {
 				const list = Array.isArray(data.data?.requests) ? data.data.requests : [];
+				if (list.length === 0) {
+					tbody.innerHTML = `
+						<tr>
+							<td colspan="10" style="
+								text-align: center;
+								padding: 20px;
+								font-size: 16px;
+								font-weight: 500;
+								color: #555;
+								background-color: #f9f9f9;
+								border: 1px solid #ddd;
+							">
+								🚫 No requests found
+							</td>
+						</tr>`;
+					table.tHead.innerHTML = "";
+					pageInfo.textContent = `Page ${page}`;
+					prevBtn.disabled = page === 1;
+					nextBtn.disabled = true;
+					return;
+				}
 				renderTable(list);
 				pageInfo.textContent = `Page ${page}`;
 				prevBtn.disabled = page === 1;
 				nextBtn.disabled = list.length < limit;
 			})
+
+
 			.catch(() => {
 				tbody.innerHTML = `<tr><td colspan="10">Failed to load data</td></tr>`;
 			});

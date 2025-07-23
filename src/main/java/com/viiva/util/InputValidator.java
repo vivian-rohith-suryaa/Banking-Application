@@ -1,7 +1,6 @@
 package com.viiva.util;
 
 import com.viiva.pojo.branch.Branch;
-import com.viiva.pojo.employee.Employee;
 import com.viiva.pojo.user.Gender;
 import com.viiva.pojo.user.User;
 import com.viiva.wrapper.signin.SigninRequest;
@@ -10,7 +9,7 @@ import com.viiva.wrapper.user.UserWrapper;
 public class InputValidator {
 
 	public static boolean isValidName(String name) {
-		 return !(BasicUtil.isBlank(name)) && name.matches("^([A-Za-z]{1,})( [A-Za-z]{1,})*$");
+		 return !(BasicUtil.isBlank(name)) && name.matches("^[A-Za-z]+(?:[-' ][A-Za-z]+)*$");
 	}
 
 	public static boolean isValidEmail(String email) {
@@ -18,7 +17,7 @@ public class InputValidator {
 	}
 
 	public static boolean isValidPhone(String phone) {
-		return !(BasicUtil.isBlank(phone)) && phone.matches("^\\d{10}$");
+		return !(BasicUtil.isBlank(phone)) && phone.matches("^[6-9]\\d{9}$");
 	}
 
 	public static boolean isStrongPassword(String password) {
@@ -61,10 +60,10 @@ public class InputValidator {
 			validationResult.append("Invalid Gender. ") ;
 		}
 		if (!isValidAadhar(aadhar)) {
-			validationResult.append("Invalid Aadhar Number. ") ;
+			validationResult.append("Invalid Aadhar Number Format. ") ;
 		}
 		if (!isValidPan(pan)) {
-			validationResult.append("Invalid PAN Number. ") ;
+			validationResult.append("Invalid PAN Number Format. ") ;
 		}
 		
 		if(!isValidAddress(address)) {
@@ -80,10 +79,10 @@ public class InputValidator {
 		String password = data.getPassword();
 		
 		if (!isValidEmail(email)) {
-			validationResult.append("Invalid Email. ") ;
+			validationResult.append("Invalid Email Format. ") ;
 		}
 		if (!isStrongPassword(password)) {
-			validationResult.append("Invalid Password. ") ;
+			validationResult.append("Invalid Password Format. ") ;
 		}
 		
 		return validationResult;

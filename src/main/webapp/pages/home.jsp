@@ -3,6 +3,12 @@
 <%@ page import="javax.servlet.http.HttpSession"%>
 <%
 HttpSession sess = request.getSession(false);
+
+if (session == null || session.getAttribute("userId") == null) {
+    response.sendRedirect(request.getContextPath() + "/pages/signin.jsp");
+    return;
+}
+
 long userId = (sess != null && sess.getAttribute("userId") != null) ? (long) sess.getAttribute("userId") : -1;
 long branchId = (sess != null && sess.getAttribute("branchId") != null) ? (long) sess.getAttribute("branchId") : -1;
 byte role = (sess != null && sess.getAttribute("role") != null) ? (byte) sess.getAttribute("role") : 0;
@@ -19,6 +25,7 @@ byte role = (sess != null && sess.getAttribute("role") != null) ? (byte) sess.ge
 	href="<%=request.getContextPath()%>/styles/footer.css">
 <link rel="stylesheet"
 	href="<%=request.getContextPath()%>/styles/home.css">
+<link rel="icon" type="image/png" href="<%= request.getContextPath() %>/images/viiva_logo.png">
 <script>
         const sessionUserId = <%=userId%>;
         const sessionBranchId = <%=branchId%>;

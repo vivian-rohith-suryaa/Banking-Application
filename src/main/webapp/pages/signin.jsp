@@ -1,12 +1,21 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+	pageEncoding="UTF-8" session="false" %>
 <!DOCTYPE html>
+<%
+    HttpSession sess = request.getSession(false);
+    if (sess != null && sess.getAttribute("userId") != null) {
+        response.sendRedirect(request.getContextPath() + "/pages/home.jsp");
+        return;
+    }
+%>
+
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Sign In - Viiva Banc</title>
 <link rel="stylesheet"
 	href="<%=request.getContextPath()%>/styles/signin.css">
+<link rel="icon" type="image/png" href="<%= request.getContextPath() %>/images/viiva_logo.png">
 </head>
 
 <body>
@@ -22,7 +31,7 @@
 				class="form login-form active json-form" data-form-type="login"
 				data-endpoint="<%=request.getContextPath()%>/viiva/auth/signin"
 				data-allow-submit="true">
-				<h2>Login</h2>
+				<h2>Sign-In</h2>
 				<div class="input-box">
 					<input type="email" name="email" required maxlength="30"
 						pattern= "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
@@ -41,7 +50,7 @@
 					<label>Password</label>
 				</div>
 
-				<button type="submit" class="submit-btn">Login</button>
+				<button type="submit" class="submit-btn">Sign-In</button>
 				<div id="signin-message" class="form-message"></div>
 			</form>
 			<p>Don't have an account? <a href="signup.jsp" >Sign up</a></p>

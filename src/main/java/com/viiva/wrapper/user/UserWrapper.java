@@ -13,6 +13,7 @@ public class UserWrapper implements SessionAware{
 	private AccountType accountType;
 	private Double balance;
 	private Long branchId;
+	private String branchName;
 	private Map<String, Object> sessionAttributes;
 	private Map<String, String> queryParams;
 
@@ -82,6 +83,14 @@ public class UserWrapper implements SessionAware{
 
 	public void setQueryParams(Map<String, String> queryParams) {
 		this.queryParams = queryParams;
+	}
+
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public void setBranchName(String branchName) {
+		this.branchName = branchName;
 	}
 
 

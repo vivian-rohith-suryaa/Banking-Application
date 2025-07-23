@@ -2,6 +2,10 @@
 <%@ page import="javax.servlet.http.HttpSession"%>
 <%
 	HttpSession sess = request.getSession(false);
+if (session == null || session.getAttribute("userId") == null) {
+    response.sendRedirect(request.getContextPath() + "/pages/signin.jsp");
+    return;
+}
 	long userId = (sess != null && sess.getAttribute("userId") != null) ? (long) sess.getAttribute("userId") : -1;
 	long branchId = (sess != null && sess.getAttribute("branchId") != null) ? (long) sess.getAttribute("branchId") : -1;
 	byte role = (sess != null && sess.getAttribute("role") != null) ? (byte) sess.getAttribute("role") : 0;

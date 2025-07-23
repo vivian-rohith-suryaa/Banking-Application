@@ -34,11 +34,6 @@ public class RouteFilter implements Filter {
 			return;
 		}
 
-		System.out.println("\nRequest URI: " + httpRequest.getRequestURI());
-		System.out.println("Request method: " + httpRequest.getMethod());
-		System.out.println("Content-Type: " + httpRequest.getContentType());
-		System.out.println("Headers: " + httpRequest.getHeader("Content-Type"));
-
 		String path = httpRequest.getRequestURI();
 		String method = httpRequest.getMethod();
 
@@ -53,12 +48,9 @@ public class RouteFilter implements Filter {
 					"No handler found for this route.\n" + response);
 			return;
 		}
-		System.out.println("API Route: " + matchedRoute.get().getPath() + "\nMethod: " + matchedRoute.get().getMethod()
-				+ "\nHandler: " + matchedRoute.get().getHandler());
-
 		request.setAttribute("handler", matchedRoute.get().getHandler());
 
-		System.out.println("Route Filter Cleared.\n");
+		System.out.println("Route Filter Cleared.");
 		chain.doFilter(httpRequest, response);
 	}
 }

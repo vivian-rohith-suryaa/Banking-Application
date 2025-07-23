@@ -35,18 +35,11 @@ public class CorsFilter implements Filter {
 			return;
 		}
 
-		System.out.println("\nRequest URI: " + httpRequest.getRequestURI());
-		System.out.println("Request method: " + httpRequest.getMethod());
-		System.out.println("Content-Type: " + httpRequest.getContentType());
-		System.out.println("Headers: " + httpRequest.getHeader("Content-Type"));
-
 		String origin = httpRequest.getHeader("Origin");
 
 		if (BasicUtil.isNull(origin)) {
 			origin = "*";
 		}
-
-		System.out.println("Origin: " + origin);
 
 		List<String> allowedOrigins = corsConfig.getAllowedOrigins();
 
@@ -60,7 +53,7 @@ public class CorsFilter implements Filter {
 			}
 			applyCorsHeaders(httpResponse, origin);
 
-			System.out.println("CORS Filter cleared.\n");
+			System.out.println("CORS Filter cleared.");
 
 			chain.doFilter(httpRequest, httpResponse);
 

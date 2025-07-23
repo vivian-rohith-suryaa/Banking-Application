@@ -20,7 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			messageBox.textContent = message;
 			messageBox.classList.remove("success", "error");
 			messageBox.classList.add(res.ok ? "success" : "error");
-			
+
+			// Auto-hide message after 3 seconds
+			setTimeout(() => {
+				messageBox.textContent = "";
+				messageBox.classList.remove("success", "error");
+			}, 2000);
+
 			if (res.ok) {
 				setTimeout(() => {
 					window.location.href = "home.jsp";
@@ -29,6 +35,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		} catch (err) {
 			messageBox.textContent = "Server error. Please try again.";
 			messageBox.className = "form-message error";
+
+			// Auto-hide error after 3 seconds
+			setTimeout(() => {
+				messageBox.textContent = "";
+				messageBox.classList.remove("error");
+			}, 2000);
 		}
 	});
 
@@ -41,3 +53,4 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 });
+

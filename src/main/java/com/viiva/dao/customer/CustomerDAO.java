@@ -28,9 +28,9 @@ public class CustomerDAO {
 			String message = e.getMessage();
 
 			if (message.contains("customer.aadhar")) {
-				throw new DBException("Duplicate Entry for Aadhar found.");
+				throw new DBException("Duplicate Aadhar Number.");
 			} else if (message.contains("customer.pan")) {
-				throw new DBException("Duplicate Entry for PAN found.");
+				throw new DBException("Duplicate PAN Number.");
 			} else {
 				throw new DBException("Constraint Violation occurred Database.");
 			}

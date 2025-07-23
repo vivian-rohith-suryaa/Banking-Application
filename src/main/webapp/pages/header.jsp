@@ -6,6 +6,9 @@
     boolean isLandingPage = uri.contains("signin.jsp") || uri.contains("signup.jsp");
 %>
 
+<link rel="icon" type="image/png" href="<%= request.getContextPath() %>/images/viiva_logo.png">
+
+
 <header class="banner">
     <div class="logo-container">
         <img src="<%= request.getContextPath() %>/images/viiva_logo.png" alt="Viiva Banc Logo" class="logo" />

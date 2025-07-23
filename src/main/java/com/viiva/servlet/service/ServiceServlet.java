@@ -5,8 +5,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -46,14 +44,10 @@ public class ServiceServlet extends HttpServlet {
 			return;
 		}
 
-		System.out.println("\nIncoming request to server.");
+		System.out.println("Incoming request to server.");
 		String handlerClassName = (String) request.getAttribute("handler");
 		String methodAction = request.getMethod();
 
-		System.out.println(request.getRequestURI());
-
-		System.out.println("Handler: " + handlerClassName + "\nMethod: " + methodAction);
-		
 		if (request.getRequestURI().endsWith("/auth/logout") && methodAction.equalsIgnoreCase("POST")) {
 			handleLogout(request, response);
 			return;
@@ -69,7 +63,7 @@ public class ServiceServlet extends HttpServlet {
 			Class<?> requestClass = handler.getRequestType();
 			Object requestData = gson.fromJson(reader, requestClass);
 			
-			System.out.println("Deserialized request:" + gson.toJson(requestData));
+			System.out.println("Deserialized request:" + gson.toJson(requestData)+"\n");
 
 			if (BasicUtil.isNull(requestData)) {
 				requestData = requestClass.getDeclaredConstructor().newInstance();
@@ -132,6 +126,8 @@ public class ServiceServlet extends HttpServlet {
 			ResponseUtil.sendError(response, 404, "Not Found", e.getMessage());
 		} catch (InputException e) {
 			ResponseUtil.sendError(response, 400, "Bad Request", e.getMessage());
+		} catch (AuthException e) {
+			ResponseUtil.sendError(response, 401, "Unauthorised", e.getMessage());
 		} catch (DBException e) {
 			ResponseUtil.sendError(response, 500, "Database Error", e.getMessage());
 		} catch (Exception e) {

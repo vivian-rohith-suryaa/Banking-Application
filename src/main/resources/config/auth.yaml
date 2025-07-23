@@ -79,7 +79,7 @@ auth:
 #View All Branches
       - path: /viiva/branch
         method: GET
-        roles: [1,2,3,4]
+        roles: [0,1,2,3,4]
 #Add Branch Info
       - path: /viiva/branch
         method: POST

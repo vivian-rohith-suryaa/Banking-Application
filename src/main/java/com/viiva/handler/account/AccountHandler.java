@@ -20,7 +20,7 @@ import com.viiva.wrapper.account.AccountRequest;
 
 public class AccountHandler implements Handler<AccountRequest> {
 
-	@Override
+//	@Override
 	public Object handle(String methodAction, AccountRequest data) throws Exception {
 
 		if (!(data instanceof SessionAware)) {

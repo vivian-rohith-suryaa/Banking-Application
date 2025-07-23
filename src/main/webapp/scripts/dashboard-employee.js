@@ -259,6 +259,6 @@ export function initDashboard(contextPath, userId, branchId, role) {
 	}
 
 	document.getElementById("view-requests-btn")?.addEventListener("click", () => {
-		window.location.href = `${contextPath}/pages/home.jsp?view=employee.jsp&section=requests`;
+		window.location.href = `${contextPath}/pages/home.jsp?view=requests.jsp`;
 	});
 }

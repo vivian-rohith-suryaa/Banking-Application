@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.viiva.exceptions.AuthException;
 import com.viiva.exceptions.DBException;
 import com.viiva.pojo.employee.Employee;
 import com.viiva.pojo.user.Gender;
@@ -52,9 +53,9 @@ public class UserDAO {
 			String message = e.getMessage();
 
 			if (message.contains("'user.email'")) {
-				throw new DBException("Duplicate Entry for Email found.");
+				throw new DBException("Duplicate Email Address.");
 			} else if (message.contains("user.phone")) {
-				throw new DBException("Duplicate Entry for Phone found.");
+				throw new DBException("Duplicate Phone Number.");
 			} else {
 				throw new DBException("Constraint Violation occurred Database.");
 			}
@@ -196,7 +197,7 @@ public class UserDAO {
 
 	}
 
-	public UserStatus getUserStatus(String email) {
+	public UserStatus getUserStatus(String email) throws AuthException {
 		String query = "SELECT status FROM user WHERE email = ?";
 		try (PreparedStatement pstmt = DBUtil.prepare(DBUtil.getConnection(), query)) {
 			pstmt.setString(1, email);
@@ -206,7 +207,7 @@ public class UserDAO {
 					byte code = rs.getByte("status");
 					return UserStatus.fromCode(code);
 				} else {
-					throw new DBException("User with ID " + email + " not found.");
+					throw new AuthException("Invalid email. No user found.");
 				}
 			}
 		} catch (SQLException e) {

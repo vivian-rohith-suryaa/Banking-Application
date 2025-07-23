@@ -28,7 +28,7 @@ public class SigninHandler implements Handler<SigninRequest> {
 				String validationResult = InputValidator.validateSignin(requestData).toString();
 
 				if (!validationResult.isEmpty()) {
-					throw new AuthException("Invalid Input(s) found: " + validationResult);
+					throw new InputException("Invalid Input(s) found: " + validationResult);
 				}
 
 				UserDAO userDao = new UserDAO();
@@ -49,7 +49,7 @@ public class SigninHandler implements Handler<SigninRequest> {
 				String hashedPassword = (String) result.get("password");
 
 				if (!BasicUtil.checkPassword(requestData.getPassword(), hashedPassword)) {
-					throw new AuthException("Passwords do not match.");
+					throw new AuthException("Incorrect Password.");
 				}
 
 				result.remove("password");

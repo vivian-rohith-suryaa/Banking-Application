@@ -36,9 +36,6 @@ public class AuthFilter implements Filter{
 		String path = httpRequest.getRequestURI();
 		String method = httpRequest.getMethod();
 		
-		System.out.println("\nRequest URI: " + path);
-		System.out.println("Request method: " + method);
-		
 		Optional<AuthRule> matchedRuleOpt = authRegistry.getAuth().stream()
 				.filter(rule -> BasicUtil.pathMatches(rule.getPath(), path) && rule.getMethod().equalsIgnoreCase(method))
 				.findFirst();

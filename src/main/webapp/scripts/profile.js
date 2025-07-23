@@ -106,7 +106,7 @@ export function initProfilePage(contextPath, userId, userRole) {
 
 	// Logout handler
 	document.getElementById("logout-btn")?.addEventListener("click", () => {
-		fetch(`${contextPath}/logout`, {
+		fetch(`${contextPath}/viiva/auth/logout`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" }
 		})
